@@ -32,6 +32,7 @@ import {
   setSecurityQuestions,
   enablePasswordRecovery,
   disablePasswordRecovery,
+  unlockApp,
   SecurityState
 } from 'ustaxes/redux/security'
 import {
@@ -145,6 +146,9 @@ export const SecuritySettingsPage = (): ReactElement => {
 
   const handlePasswordSetupSuccess = (passwordHash: string): void => {
     dispatch(enablePasswordProtection(passwordHash))
+    // Auto-unlock after initial password setup - user is already authenticated
+    dispatch(unlockApp())
+    sessionStorage.setItem('ustaxes_unlocked', 'true')
     setShowPasswordSetup(false)
   }
 

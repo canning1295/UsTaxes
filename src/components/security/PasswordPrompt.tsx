@@ -6,9 +6,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
+  InputAdornment,
   TextField,
   Typography
 } from '@material-ui/core'
+import { Visibility, VisibilityOff } from '@material-ui/icons'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   unlockApp,
@@ -36,6 +39,7 @@ export const PasswordPrompt = ({
   const securitySettings = useSelector(selectSecuritySettings)
 
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -99,7 +103,7 @@ export const PasswordPrompt = ({
               autoFocus
               margin="dense"
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               fullWidth
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -107,6 +111,21 @@ export const PasswordPrompt = ({
               error={error !== null}
               helperText={error}
               disabled={loading}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      size="small"
+                      disabled={loading}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
             />
 
             {lockState.failedAttempts > 0 && (
