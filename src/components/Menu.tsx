@@ -34,6 +34,7 @@ import ItemizedDeductions from './deductions/ItemizedDeductions'
 import Questions from './Questions'
 import HelpAndFeedback from './HelpAndFeedback'
 import UserSettings from './UserSettings'
+import { SecuritySettingsPage } from './security'
 import Urls from 'ustaxes/data/urls'
 
 import { isMobileOnly as isMobile } from 'react-device-detect'
@@ -95,6 +96,11 @@ export const backPages: SectionItem[] = [
     title: 'User Settings',
     url: Urls.settings,
     element: <UserSettings />
+  },
+  {
+    title: 'Security Settings',
+    url: Urls.security,
+    element: <SecuritySettingsPage />
   },
   {
     title: 'Help and Feedback',

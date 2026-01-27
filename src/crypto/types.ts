@@ -13,6 +13,14 @@ export type SessionTimeoutMinutes = 5 | 10 | 15 | 30 | 60 | null
 export type StorageLocation = 'localStorage' | 'file'
 
 /**
+ * Security question for password recovery
+ */
+export interface SecurityQuestion {
+  question: string
+  answerHash: string
+}
+
+/**
  * User's security preferences
  */
 export interface SecuritySettings {
@@ -22,6 +30,10 @@ export interface SecuritySettings {
   sessionTimeoutEnabled: boolean
   storageLocation: StorageLocation
   lastActivity: number | null
+  biometricEnabled: boolean
+  biometricCredentialId: string | null
+  passwordRecoveryEnabled: boolean
+  securityQuestions: SecurityQuestion[] | null
 }
 
 /**
@@ -78,7 +90,11 @@ export const defaultSecuritySettings: SecuritySettings = {
   sessionTimeoutMinutes: 15,
   sessionTimeoutEnabled: false,
   storageLocation: 'localStorage',
-  lastActivity: null
+  lastActivity: null,
+  biometricEnabled: false,
+  biometricCredentialId: null,
+  passwordRecoveryEnabled: false,
+  securityQuestions: null
 }
 
 /**

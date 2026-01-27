@@ -80,7 +80,7 @@ const deriveKey = async (
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt,
+      salt: salt.buffer as ArrayBuffer,
       iterations: PBKDF2_ITERATIONS,
       hash: 'SHA-256'
     },
@@ -110,7 +110,7 @@ export const encrypt = async (
   const key = await deriveKey(password, salt)
 
   const encryptedBuffer = await crypto.subtle.encrypt(
-    { name: ALGORITHM, iv },
+    { name: ALGORITHM, iv: iv.buffer as ArrayBuffer },
     key,
     encoder.encode(data)
   )
@@ -141,9 +141,9 @@ export const decrypt = async (
 
   try {
     const decryptedBuffer = await crypto.subtle.decrypt(
-      { name: ALGORITHM, iv },
+      { name: ALGORITHM, iv: iv.buffer as ArrayBuffer },
       key,
-      data
+      data.buffer as ArrayBuffer
     )
 
     const decoder = new TextDecoder()

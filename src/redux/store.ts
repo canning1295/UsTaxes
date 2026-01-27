@@ -17,6 +17,7 @@ import storage from 'redux-persist/lib/storage' // defaults to localStorage for 
 import { Asset, Information, TaxYear } from 'ustaxes/core/data'
 import { blankYearTaxesState, YearsTaxesState } from '.'
 import { Actions } from './actions'
+import { SecurityActions } from './security/actions'
 import { PersistPartial } from 'redux-persist/es/persistReducer'
 import { createTransform } from 'redux-persist'
 import { FSAction } from './fs/Actions'
@@ -121,7 +122,7 @@ const migrations = {
 
 const persistedReducer = fsReducer(
   'ustaxes_save.json',
-  persistReducer<CombinedState<YearsTaxesState>, Actions>(
+  persistReducer<CombinedState<YearsTaxesState>, Actions | SecurityActions>(
     {
       key: 'root',
       // Changing the version here will set the version used
@@ -138,16 +139,11 @@ const persistedReducer = fsReducer(
   )
 )
 
-export type InfoStore = Store<YearsTaxesState, FSAction & Actions> & {
-  dispatch: unknown
-}
+export type AllActions = FSAction | Actions | SecurityActions
 
-export type PersistedStore = Store<
-  YearsTaxesState & PersistPartial,
-  FSAction & Actions
-> & {
-  dispatch: unknown
-}
+export type InfoStore = Store<YearsTaxesState, AllActions>
+
+export type PersistedStore = Store<YearsTaxesState & PersistPartial, AllActions>
 
 export const createWholeStoreUnpersisted = (
   state: YearsTaxesState

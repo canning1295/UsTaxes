@@ -1,5 +1,6 @@
 import { ReactElement, useMemo } from 'react'
 import Main from './components/Main'
+import { SecurityGate } from './components/security'
 import './App.css'
 import { createTheme, ThemeProvider, useMediaQuery } from '@material-ui/core'
 
@@ -37,7 +38,9 @@ const App = (): ReactElement => {
   return (
     <div className="App">
       <ThemeProvider theme={theme}>
-        <Main />
+        <SecurityGate>
+          <Main />
+        </SecurityGate>
       </ThemeProvider>
     </div>
   )

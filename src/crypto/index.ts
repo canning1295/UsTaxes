@@ -25,7 +25,8 @@ export type {
   LockState,
   EncryptedStateWrapper,
   ExportedData,
-  EncryptedData
+  EncryptedData,
+  SecurityQuestion
 } from './types'
 
 export {

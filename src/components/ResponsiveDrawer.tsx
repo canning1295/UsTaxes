@@ -16,7 +16,7 @@ import {
 } from '@material-ui/core'
 import GitHubIcon from '@material-ui/icons/GitHub'
 import TwitterIcon from '@material-ui/icons/Twitter'
-import { HelpOutlineRounded, Settings } from '@material-ui/icons'
+import { HelpOutlineRounded, Settings, Security } from '@material-ui/icons'
 import Urls from 'ustaxes/data/urls'
 
 const drawerWidth = 240
@@ -156,6 +156,11 @@ function ResponsiveDrawer(props: DrawerItemsProps): ReactElement {
           <Link to={Urls.settings}>
             <IconButton color="secondary" aria-label="site user settings">
               <Settings />
+            </IconButton>
+          </Link>
+          <Link to={Urls.security}>
+            <IconButton color="secondary" aria-label="security settings">
+              <Security />
             </IconButton>
           </Link>
         </ListItem>

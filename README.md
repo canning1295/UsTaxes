@@ -73,6 +73,16 @@ This project is built by a growing community. If you notice an error in the outp
 
 The project is available strictly via client side. Data is persisted to the site's localstorage so _no personal information ever leaves the user's computer._ For those who want extra security, the codebase can also be built as a [desktop application](#desktop-application).
 
+### Security Features
+
+UsTaxes includes optional security features to protect your sensitive tax data:
+
+- **Password Protection**: Encrypt your data with AES-256 encryption
+- **Session Timeout**: Automatically lock the app after inactivity
+- **Local-only Storage**: All data remains on your device
+
+For more details, see the [Security Documentation](docs/SECURITY.md).
+
 ## Contributing
 
 Thank you for taking the time to contribute; let's make tax filing free for everyone! 🎉

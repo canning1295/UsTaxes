@@ -142,6 +142,68 @@ export const securityReducer = (
       }
     }
 
+    case SecurityActionName.ENABLE_BIOMETRIC: {
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          biometricEnabled: true
+        }
+      }
+    }
+
+    case SecurityActionName.DISABLE_BIOMETRIC: {
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          biometricEnabled: false,
+          biometricCredentialId: null
+        }
+      }
+    }
+
+    case SecurityActionName.SET_BIOMETRIC_CREDENTIAL: {
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          biometricCredentialId: action.credentialId
+        }
+      }
+    }
+
+    case SecurityActionName.ENABLE_PASSWORD_RECOVERY: {
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          passwordRecoveryEnabled: true
+        }
+      }
+    }
+
+    case SecurityActionName.DISABLE_PASSWORD_RECOVERY: {
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          passwordRecoveryEnabled: false,
+          securityQuestions: null
+        }
+      }
+    }
+
+    case SecurityActionName.SET_SECURITY_QUESTIONS: {
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          securityQuestions: action.questions
+        }
+      }
+    }
+
     default:
       return state
   }
@@ -166,3 +228,16 @@ export const selectIsPasswordEnabled = (state: {
 export const selectIsSessionTimeoutEnabled = (state: {
   security: SecurityState
 }): boolean => state.security.settings.sessionTimeoutEnabled
+
+export const selectIsBiometricEnabled = (state: {
+  security: SecurityState
+}): boolean => state.security.settings.biometricEnabled
+
+export const selectIsPasswordRecoveryEnabled = (state: {
+  security: SecurityState
+}): boolean => state.security.settings.passwordRecoveryEnabled
+
+export const selectSecurityQuestions = (state: {
+  security: SecurityState
+}): SecuritySettings['securityQuestions'] =>
+  state.security.settings.securityQuestions

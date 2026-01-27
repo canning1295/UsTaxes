@@ -4,7 +4,7 @@
  * Follows the same pattern as the main actions.ts
  */
 
-import { SessionTimeoutMinutes } from 'ustaxes/crypto'
+import { SessionTimeoutMinutes, SecurityQuestion } from 'ustaxes/crypto'
 
 export enum SecurityActionName {
   ENABLE_PASSWORD_PROTECTION = 'SECURITY/ENABLE_PASSWORD',
@@ -16,7 +16,13 @@ export enum SecurityActionName {
   UNLOCK_APP = 'SECURITY/UNLOCK',
   RECORD_FAILED_ATTEMPT = 'SECURITY/FAILED_ATTEMPT',
   RESET_FAILED_ATTEMPTS = 'SECURITY/RESET_ATTEMPTS',
-  UPDATE_LAST_ACTIVITY = 'SECURITY/UPDATE_ACTIVITY'
+  UPDATE_LAST_ACTIVITY = 'SECURITY/UPDATE_ACTIVITY',
+  ENABLE_BIOMETRIC = 'SECURITY/ENABLE_BIOMETRIC',
+  DISABLE_BIOMETRIC = 'SECURITY/DISABLE_BIOMETRIC',
+  SET_BIOMETRIC_CREDENTIAL = 'SECURITY/SET_BIOMETRIC_CREDENTIAL',
+  ENABLE_PASSWORD_RECOVERY = 'SECURITY/ENABLE_PASSWORD_RECOVERY',
+  DISABLE_PASSWORD_RECOVERY = 'SECURITY/DISABLE_PASSWORD_RECOVERY',
+  SET_SECURITY_QUESTIONS = 'SECURITY/SET_SECURITY_QUESTIONS'
 }
 
 interface EnablePasswordProtection {
@@ -62,6 +68,32 @@ interface UpdateLastActivity {
   timestamp: number
 }
 
+interface EnableBiometric {
+  type: SecurityActionName.ENABLE_BIOMETRIC
+}
+
+interface DisableBiometric {
+  type: SecurityActionName.DISABLE_BIOMETRIC
+}
+
+interface SetBiometricCredential {
+  type: SecurityActionName.SET_BIOMETRIC_CREDENTIAL
+  credentialId: string
+}
+
+interface EnablePasswordRecovery {
+  type: SecurityActionName.ENABLE_PASSWORD_RECOVERY
+}
+
+interface DisablePasswordRecovery {
+  type: SecurityActionName.DISABLE_PASSWORD_RECOVERY
+}
+
+interface SetSecurityQuestions {
+  type: SecurityActionName.SET_SECURITY_QUESTIONS
+  questions: SecurityQuestion[]
+}
+
 export type SecurityActions =
   | EnablePasswordProtection
   | DisablePasswordProtection
@@ -73,6 +105,12 @@ export type SecurityActions =
   | RecordFailedAttempt
   | ResetFailedAttempts
   | UpdateLastActivity
+  | EnableBiometric
+  | DisableBiometric
+  | SetBiometricCredential
+  | EnablePasswordRecovery
+  | DisablePasswordRecovery
+  | SetSecurityQuestions
 
 export const enablePasswordProtection = (
   passwordHash: string
@@ -119,4 +157,34 @@ export const resetFailedAttempts = (): ResetFailedAttempts => ({
 export const updateLastActivity = (timestamp: number): UpdateLastActivity => ({
   type: SecurityActionName.UPDATE_LAST_ACTIVITY,
   timestamp
+})
+
+export const enableBiometric = (): EnableBiometric => ({
+  type: SecurityActionName.ENABLE_BIOMETRIC
+})
+
+export const disableBiometric = (): DisableBiometric => ({
+  type: SecurityActionName.DISABLE_BIOMETRIC
+})
+
+export const setBiometricCredential = (
+  credentialId: string
+): SetBiometricCredential => ({
+  type: SecurityActionName.SET_BIOMETRIC_CREDENTIAL,
+  credentialId
+})
+
+export const enablePasswordRecovery = (): EnablePasswordRecovery => ({
+  type: SecurityActionName.ENABLE_PASSWORD_RECOVERY
+})
+
+export const disablePasswordRecovery = (): DisablePasswordRecovery => ({
+  type: SecurityActionName.DISABLE_PASSWORD_RECOVERY
+})
+
+export const setSecurityQuestions = (
+  questions: SecurityQuestion[]
+): SetSecurityQuestions => ({
+  type: SecurityActionName.SET_SECURITY_QUESTIONS,
+  questions
 })

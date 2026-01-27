@@ -1,5 +1,6 @@
 import { Asset, Information, Person, TaxYear } from 'ustaxes/core/data'
 import { blankState } from './reducer'
+import { SecurityState } from './security/reducer'
 
 /**
  * This is a simplified form of our global TaxesState
@@ -11,7 +12,10 @@ export type TaxesState = { information: Information }
 export type YearsTaxesState<D = Date> = { [K in TaxYear]: Information<D> } & {
   assets: Asset<D>[]
   activeYear: TaxYear
+  security: SecurityState
 }
+
+import { defaultSecuritySettings, defaultLockState } from 'ustaxes/crypto'
 
 export const blankYearTaxesState: YearsTaxesState = {
   assets: [],
@@ -21,7 +25,11 @@ export const blankYearTaxesState: YearsTaxesState = {
   Y2022: blankState,
   Y2023: blankState,
   Y2024: blankState,
-  activeYear: 'Y2020'
+  activeYear: 'Y2020',
+  security: {
+    settings: defaultSecuritySettings,
+    lock: defaultLockState
+  }
 }
 
 export const dateToStringPerson = <P extends Person<Date>>(

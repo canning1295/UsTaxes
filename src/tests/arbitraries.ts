@@ -4,6 +4,7 @@ import * as arbitraries from 'ustaxes/core/tests/arbitraries'
 import { YearsTaxesState } from 'ustaxes/redux'
 import prand from 'pure-rand'
 import { Asset, AssetType, TaxYear, TaxYears } from 'ustaxes/core/data'
+import { defaultSecuritySettings, defaultLockState } from 'ustaxes/crypto'
 
 export const taxYear: fc.Arbitrary<TaxYear> = fc.constantFrom(
   ...util.enumKeys(TaxYears)
@@ -96,7 +97,11 @@ export const taxesState: fc.Arbitrary<YearsTaxesState> = taxYear.chain(
         Y2022,
         Y2023,
         Y2024,
-        activeYear
+        activeYear,
+        security: {
+          settings: defaultSecuritySettings,
+          lock: defaultLockState
+        }
       }))
   }
 )

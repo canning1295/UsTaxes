@@ -4,6 +4,8 @@ import { Asset, FilingStatus, Information, TaxYear } from 'ustaxes/core/data'
 import { YearsTaxesState } from '.'
 import { ActionName, Actions } from './actions'
 import { stringToDateInfo } from './data'
+import { securityReducer } from './security/reducer'
+import { SecurityActions } from './security/actions'
 
 const DEFAULT_TAX_YEAR: TaxYear = 'Y2024'
 
@@ -478,7 +480,7 @@ const assetReducer = (
 
 const rootReducer: Reducer<
   CombinedState<YearsTaxesState>,
-  Actions
+  Actions | SecurityActions
 > = combineReducers({
   assets: assetReducer,
   Y2019: guardByYear('Y2019'),
@@ -487,7 +489,8 @@ const rootReducer: Reducer<
   Y2022: guardByYear('Y2022'),
   Y2023: guardByYear('Y2023'),
   Y2024: guardByYear('Y2024'),
-  activeYear
-}) as Reducer<CombinedState<YearsTaxesState>, Actions>
+  activeYear,
+  security: securityReducer
+}) as Reducer<CombinedState<YearsTaxesState>, Actions | SecurityActions>
 
 export default rootReducer
