@@ -7,7 +7,7 @@ import { stringToDateInfo } from './data'
 import { securityReducer } from './security/reducer'
 import { SecurityActions } from './security/actions'
 
-const DEFAULT_TAX_YEAR: TaxYear = 'Y2024'
+const DEFAULT_TAX_YEAR: TaxYear = 'Y2025'
 
 export const blankState: Information = {
   f1099s: [],
