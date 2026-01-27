@@ -33,3 +33,36 @@ yarn-error.log*
 
 /logs/
 /src/core/data/validate-fns.js
+
+# ========================================
+# Personal Tax Data Protection
+# ========================================
+# Browser storage data (exported/backup)
+*.db
+*.sqlite
+*.sqlite3
+taxdata.json
+tax-data.json
+my-tax-data.*
+personal-data.*
+
+# Common user data patterns
+/user-data/
+/personal/
+/my-taxes/
+*-personal.*
+*-private.*
+
+# Backup and export files
+backup-*.json
+export-*.json
+*.backup
+
+# Test data with real info
+test-real-data.*
+real-test-data.*
+
+# Environment variables with secrets
+.env.private
+.env.personal
+
