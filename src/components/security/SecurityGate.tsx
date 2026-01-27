@@ -12,12 +12,14 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
+  InputAdornment,
   TextField,
   Typography,
   Box,
   Link
 } from '@material-ui/core'
-import { Fingerprint } from '@material-ui/icons'
+import { Fingerprint, Visibility, VisibilityOff } from '@material-ui/icons'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   unlockApp,
@@ -64,12 +66,15 @@ export const SecurityGate = ({
   const isLocked = useSelector(selectIsLocked)
 
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [showRecovery, setShowRecovery] = useState(false)
   const [showPasswordChange, setShowPasswordChange] = useState(false)
   const [newPassword, setNewPassword] = useState('')
+  const [showNewPassword, setShowNewPassword] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [recoveryAnswers, setRecoveryAnswers] = useState<string[]>(['', '', ''])
   const [recoveryError, setRecoveryError] = useState<string | null>(null)
@@ -372,22 +377,58 @@ export const SecurityGate = ({
                 autoFocus
                 margin="dense"
                 label="New Password"
-                type="password"
+                type={showNewPassword ? 'text' : 'password'}
                 fullWidth
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 disabled={loading}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle new password visibility"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        edge="end"
+                        size="small"
+                        disabled={loading}
+                      >
+                        {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
               />
               <TextField
                 margin="dense"
                 label="Confirm Password"
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 fullWidth
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 error={passwordError !== null}
                 helperText={passwordError}
                 disabled={loading}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle confirm password visibility"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        edge="end"
+                        size="small"
+                        disabled={loading}
+                      >
+                        {showConfirmPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
               />
             </DialogContent>
             <DialogActions>
@@ -512,7 +553,7 @@ export const SecurityGate = ({
               autoFocus
               margin="dense"
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               fullWidth
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -520,6 +561,21 @@ export const SecurityGate = ({
               error={error !== null}
               helperText={error}
               disabled={loading}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      size="small"
+                      disabled={loading}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
             />
 
             {lockState.failedAttempts > 0 && (

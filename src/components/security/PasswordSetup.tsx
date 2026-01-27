@@ -6,10 +6,13 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
+  InputAdornment,
   LinearProgress,
   TextField,
   Typography
 } from '@material-ui/core'
+import { Visibility, VisibilityOff } from '@material-ui/icons'
 import { hashPassword, verifyPasswordHash } from 'ustaxes/crypto'
 import useStyles from './styles'
 
@@ -47,8 +50,11 @@ export const PasswordSetup = ({
   const classes = useStyles()
 
   const [currentPassword, setCurrentPassword] = useState('')
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -107,23 +113,53 @@ export const PasswordSetup = ({
           <TextField
             margin="dense"
             label="Current Password"
-            type="password"
+            type={showCurrentPassword ? 'text' : 'password'}
             fullWidth
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             disabled={loading}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle current password visibility"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    edge="end"
+                    size="small"
+                    disabled={loading}
+                  >
+                    {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
           />
         )}
 
         <TextField
           margin="dense"
           label="New Password"
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           fullWidth
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
           helperText="Minimum 8 characters"
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={() => setShowPassword(!showPassword)}
+                  edge="end"
+                  size="small"
+                  disabled={loading}
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
         />
 
         {password.length > 0 && (
@@ -141,7 +177,7 @@ export const PasswordSetup = ({
         <TextField
           margin="dense"
           label="Confirm Password"
-          type="password"
+          type={showConfirmPassword ? 'text' : 'password'}
           fullWidth
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
@@ -152,6 +188,21 @@ export const PasswordSetup = ({
               ? 'Passwords do not match'
               : ''
           }
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="toggle confirm password visibility"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  edge="end"
+                  size="small"
+                  disabled={loading}
+                >
+                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
         />
 
         {error && (
