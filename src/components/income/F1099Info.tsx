@@ -163,7 +163,7 @@ const toF1099 = (input: F1099UserInput): Supported1099 | undefined => {
         personRole: input.personRole ?? PersonRole.PRIMARY,
         type: input.formType,
         form: {
-          income: Number(input.interest)
+          income: Number(input.interest) || 0
         }
       }
     }
@@ -173,10 +173,10 @@ const toF1099 = (input: F1099UserInput): Supported1099 | undefined => {
         personRole: input.personRole ?? PersonRole.PRIMARY,
         type: input.formType,
         form: {
-          shortTermCostBasis: Number(input.shortTermCostBasis),
-          shortTermProceeds: Number(input.shortTermProceeds),
-          longTermCostBasis: Number(input.longTermCostBasis),
-          longTermProceeds: Number(input.longTermProceeds)
+          shortTermCostBasis: Number(input.shortTermCostBasis) || 0,
+          shortTermProceeds: Number(input.shortTermProceeds) || 0,
+          longTermCostBasis: Number(input.longTermCostBasis) || 0,
+          longTermProceeds: Number(input.longTermProceeds) || 0
         }
       }
     }
@@ -186,11 +186,10 @@ const toF1099 = (input: F1099UserInput): Supported1099 | undefined => {
         personRole: input.personRole ?? PersonRole.PRIMARY,
         type: input.formType,
         form: {
-          dividends: Number(input.dividends),
-          qualifiedDividends: Number(input.qualifiedDividends),
-          totalCapitalGainsDistributions: Number(
-            input.totalCapitalGainsDistributions
-          )
+          dividends: Number(input.dividends) || 0,
+          qualifiedDividends: Number(input.qualifiedDividends) || 0,
+          totalCapitalGainsDistributions:
+            Number(input.totalCapitalGainsDistributions) || 0
         }
       }
     }
@@ -200,9 +199,9 @@ const toF1099 = (input: F1099UserInput): Supported1099 | undefined => {
         personRole: input.personRole ?? PersonRole.PRIMARY,
         type: input.formType,
         form: {
-          grossDistribution: Number(input.grossDistribution),
-          taxableAmount: Number(input.taxableAmount),
-          federalIncomeTaxWithheld: Number(input.federalIncomeTaxWithheld),
+          grossDistribution: Number(input.grossDistribution) || 0,
+          taxableAmount: Number(input.taxableAmount) || 0,
+          federalIncomeTaxWithheld: Number(input.federalIncomeTaxWithheld) || 0,
           planType: PlanType1099.Pension
         }
       }
@@ -213,10 +212,21 @@ const toF1099 = (input: F1099UserInput): Supported1099 | undefined => {
         personRole: input.personRole ?? PersonRole.PRIMARY,
         type: input.formType,
         form: {
-          // benefitsPaid: Number(input.benefitsPaid),
-          // benefitsRepaid: Number(input.benefitsRepaid),
-          netBenefits: Number(input.netBenefits),
-          federalIncomeTaxWithheld: Number(input.federalIncomeTaxWithheld)
+          // benefitsPaid: Number(input.benefitsPaid) || 0,
+          // benefitsRepaid: Number(input.benefitsRepaid) || 0,
+          netBenefits: Number(input.netBenefits) || 0,
+          federalIncomeTaxWithheld: Number(input.federalIncomeTaxWithheld) || 0
+        }
+      }
+    }
+    default: {
+      // For auto-save with no type selected yet, default to INT type
+      return {
+        payer: input.payer,
+        personRole: input.personRole ?? PersonRole.PRIMARY,
+        type: Income1099Type.INT,
+        form: {
+          income: 0
         }
       }
     }

@@ -89,7 +89,7 @@ const toUserInput = (k1: ScheduleK1Form1065): ScheduleK1Form1065UserInput => ({
 
 const toScheduleK1Form1065 = (
   input: ScheduleK1Form1065UserInput
-): ScheduleK1Form1065 | undefined => {
+): ScheduleK1Form1065 => {
   const {
     personRole,
     partnershipName,
@@ -107,25 +107,23 @@ const toScheduleK1Form1065 = (
     distributionsCodeAAmount,
     section199AQBI
   } = input
-  if (partnershipName === '') {
-    return undefined
-  }
+  // Use default values for auto-save with incomplete data
   return {
     personRole: personRole,
-    partnershipName: partnershipName,
+    partnershipName: partnershipName || '',
     partnershipEin: partnershipEin,
     partnerOrSCorp: partnerOrSCorp,
     isForeign: isForeign,
     isPassive: isPassive,
-    ordinaryBusinessIncome: Number(ordinaryBusinessIncome),
-    interestIncome: Number(interestIncome),
-    guaranteedPaymentsForServices: Number(guaranteedPaymentsForServices),
-    guaranteedPaymentsForCapital: Number(guaranteedPaymentsForCapital),
-    selfEmploymentEarningsA: Number(selfEmploymentEarningsA),
-    selfEmploymentEarningsB: Number(selfEmploymentEarningsB),
-    selfEmploymentEarningsC: Number(selfEmploymentEarningsC),
-    distributionsCodeAAmount: Number(distributionsCodeAAmount),
-    section199AQBI: Number(section199AQBI)
+    ordinaryBusinessIncome: Number(ordinaryBusinessIncome) || 0,
+    interestIncome: Number(interestIncome) || 0,
+    guaranteedPaymentsForServices: Number(guaranteedPaymentsForServices) || 0,
+    guaranteedPaymentsForCapital: Number(guaranteedPaymentsForCapital) || 0,
+    selfEmploymentEarningsA: Number(selfEmploymentEarningsA) || 0,
+    selfEmploymentEarningsB: Number(selfEmploymentEarningsB) || 0,
+    selfEmploymentEarningsC: Number(selfEmploymentEarningsC) || 0,
+    distributionsCodeAAmount: Number(distributionsCodeAAmount) || 0,
+    section199AQBI: Number(section199AQBI) || 0
   }
 }
 
@@ -160,18 +158,14 @@ export const PartnershipIncome = (): ReactElement => {
 
   const onSubmitAdd = (formData: ScheduleK1Form1065UserInput): void => {
     const payload = toScheduleK1Form1065(formData)
-    if (payload !== undefined) {
-      dispatch(addScheduleK1Form1065(payload))
-    }
+    dispatch(addScheduleK1Form1065(payload))
   }
 
   const onSubmitEdit =
     (index: number) =>
     (formData: ScheduleK1Form1065UserInput): void => {
       const payload = toScheduleK1Form1065(formData)
-      if (payload !== undefined) {
-        dispatch(editScheduleK1Form1065({ value: payload, index }))
-      }
+      dispatch(editScheduleK1Form1065({ value: payload, index }))
     }
 
   const form: ReactElement | undefined = (
@@ -185,7 +179,6 @@ export const PartnershipIncome = (): ReactElement => {
       primary={(k1) => k1.partnershipName}
       secondary={(k1) => {
         const scheduleK1Form1065 = toScheduleK1Form1065(k1)
-        if (scheduleK1Form1065 === undefined) return ''
         return <span>{formatEIN(scheduleK1Form1065.partnershipEin)}</span>
       }}
     >

@@ -1,4 +1,4 @@
-import { ReactElement, useEffect } from 'react'
+import { ReactElement, useEffect, useCallback } from 'react'
 import { Helmet } from 'react-helmet'
 import { FormProvider, useForm } from 'react-hook-form'
 import _ from 'lodash'
@@ -29,6 +29,7 @@ import AddressFields from './Address'
 import { Grid } from '@material-ui/core'
 import { Patterns } from 'ustaxes/components/Patterns'
 import { intentionallyFloat } from 'ustaxes/core/util'
+import { useAutoSave } from 'ustaxes/hooks/useAutoSave'
 
 interface TaxPayerUserForm {
   firstName: string
@@ -66,17 +67,43 @@ const defaultTaxpayerUserForm: TaxPayerUserForm = {
 }
 
 const asPrimaryPerson = (formData: TaxPayerUserForm): PrimaryPerson<string> => {
-  if (formData.dateOfBirth === undefined) {
-    throw new Error('Called with undefined date of birth')
-  }
+  // Use current date as placeholder if dateOfBirth is not yet set (for auto-save)
+  const dateOfBirth = formData.dateOfBirth ?? new Date()
+
+  // Clean address based on whether it's foreign or domestic
+  // This ensures stale fields from the other address type are removed
+  const cleanedAddress: Address = formData.isForeignCountry
+    ? {
+        // Foreign address - clear domestic fields
+        address: formData.address.address,
+        aptNo: formData.address.aptNo,
+        city: formData.address.city,
+        state: undefined,
+        zip: undefined,
+        foreignCountry: formData.address.foreignCountry,
+        province: formData.address.province,
+        postalCode: formData.address.postalCode
+      }
+    : {
+        // Domestic address - clear foreign fields
+        address: formData.address.address,
+        aptNo: formData.address.aptNo,
+        city: formData.address.city,
+        state: formData.address.state,
+        zip: formData.address.zip,
+        foreignCountry: undefined,
+        province: undefined,
+        postalCode: undefined
+      }
+
   return {
-    address: formData.address,
+    address: cleanedAddress,
     firstName: formData.firstName,
     lastName: formData.lastName,
     ssid: formData.ssid.replace(/-/g, ''),
     isTaxpayerDependent: formData.isTaxpayerDependent,
     role: PersonRole.PRIMARY,
-    dateOfBirth: formData.dateOfBirth.toISOString(),
+    dateOfBirth: dateOfBirth.toISOString(),
     isBlind: formData.isBlind
   }
 }
@@ -128,8 +155,38 @@ export default function PrimaryTaxpayer(): ReactElement {
     handleSubmit,
     getValues,
     reset,
+    watch,
     formState: { isDirty }
   } = methods
+
+  // Auto-save handler - saves form data when auto-save is enabled
+  const handleAutoSave = useCallback(
+    (form: TaxPayerUserForm) => {
+      // Save partial data for auto-save - don't require all fields to be complete
+      // This allows the form to be saved even with only some fields filled in
+      try {
+        // Only save primary person info if we have at least some data
+        if (form.firstName || form.lastName || form.ssid || form.dateOfBirth) {
+          dispatch(savePrimaryPersonInfo(asPrimaryPerson(form)))
+        }
+        // Always try to save contact info
+        dispatch(saveContactInfo(asContactInfo(form)))
+        if (form.stateResidency) {
+          dispatch(saveStateResidencyInfo({ state: form.stateResidency }))
+        }
+      } catch (e) {
+        // Silently ignore errors during auto-save for partial data
+        console.debug('Auto-save skipped due to incomplete data:', e)
+      }
+    },
+    [dispatch]
+  )
+
+  // Enable auto-save for this form
+  useAutoSave({
+    watch,
+    onSave: handleAutoSave
+  })
 
   // This form can be rerendered because the global state was modified by
   // another control.

@@ -65,18 +65,17 @@ const blankUserDependentForm: UserDependentForm = {
 
 const toDependent = (formData: UserDependentForm): Dependent<string> => {
   const { isStudent, numberOfMonths, ...rest } = formData
-  if (formData.dateOfBirth === undefined) {
-    throw new Error('Called with undefined date of birth')
-  }
+  // Use current date as placeholder if dateOfBirth is not yet set (for auto-save)
+  const dateOfBirth = formData.dateOfBirth ?? new Date()
 
   return {
     ...rest,
     role: PersonRole.DEPENDENT,
     qualifyingInfo: {
-      numberOfMonths: parseInt(numberOfMonths),
+      numberOfMonths: parseInt(numberOfMonths) || 0,
       isStudent
     },
-    dateOfBirth: formData.dateOfBirth.toISOString()
+    dateOfBirth: dateOfBirth.toISOString()
   }
 }
 
@@ -101,14 +100,13 @@ const blankUserSpouseForm = {
 }
 
 const toSpouse = (formData: UserSpouseForm): Spouse<string> => {
-  if (formData.dateOfBirth === undefined) {
-    throw new Error('Called with undefined date of birth')
-  }
+  // Use current date as placeholder if dateOfBirth is not yet set (for auto-save)
+  const dateOfBirth = formData.dateOfBirth ?? new Date()
 
   return {
     ...formData,
     role: PersonRole.SPOUSE,
-    dateOfBirth: formData.dateOfBirth.toISOString()
+    dateOfBirth: dateOfBirth.toISOString()
   }
 }
 

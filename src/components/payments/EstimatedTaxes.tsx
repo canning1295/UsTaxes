@@ -31,11 +31,9 @@ const toPayments = (
   formData: EstimatedTaxesUserInput
 ): EstimatedTaxPayments => ({
   ...formData,
-  // Note we are not error checking here because
-  // we are already in the input validated happy path
-  // of handleSubmit.
+  // Use 0 as default for empty/invalid payment values to support auto-save
   label: formData.label,
-  payment: parseInt(formData.payment)
+  payment: parseInt(formData.payment) || 0
 })
 
 const toEstimatedTaxesUserInput = (

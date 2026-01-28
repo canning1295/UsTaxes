@@ -19,7 +19,7 @@ const blankCreditUserInput: Partial<CreditUserInput> = {
 }
 
 const toCredit = (u: CreditUserInput): Credit => {
-  const amount = parseFloat(u.amount)
+  const amount = parseFloat(u.amount) || 0
   return {
     type: CreditType.AdvanceChildTaxCredit,
     amount,

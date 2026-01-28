@@ -51,17 +51,15 @@ const toUserInput = (f: F3921): F3921UserInput => ({
   numShares: f.numShares.toString()
 })
 
-const toF3921 = (input: F3921UserInput): F3921 | undefined => {
+const toF3921 = (input: F3921UserInput): F3921 => {
   const { name, personRole, exercisePricePerShare, fmv, numShares } = input
-  if (name === '') {
-    return undefined
-  }
+  // Use default values for auto-save with incomplete data
   return {
-    name,
+    name: name || '',
     personRole: personRole,
-    exercisePricePerShare: Number(exercisePricePerShare),
-    fmv: Number(fmv),
-    numShares: Number(numShares)
+    exercisePricePerShare: Number(exercisePricePerShare) || 0,
+    fmv: Number(fmv) || 0,
+    numShares: Number(numShares) || 0
   }
 }
 
@@ -95,18 +93,14 @@ export const StockOptions = (): ReactElement => {
 
   const onSubmitAdd = (formData: F3921UserInput): void => {
     const payload = toF3921(formData)
-    if (payload !== undefined) {
-      dispatch(addF3921(payload))
-    }
+    dispatch(addF3921(payload))
   }
 
   const onSubmitEdit =
     (index: number) =>
     (formData: F3921UserInput): void => {
       const payload = toF3921(formData)
-      if (payload !== undefined) {
-        dispatch(editF3921({ value: payload, index }))
-      }
+      dispatch(editF3921({ value: payload, index }))
     }
 
   const form: ReactElement | undefined = (

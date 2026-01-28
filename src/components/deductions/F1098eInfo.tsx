@@ -34,8 +34,8 @@ const toUserInput = (f: F1098e): F1098EUserInput => ({
 
 const toF1098e = (f: F1098EUserInput): F1098e => {
   return {
-    lender: f.lender,
-    interest: Number(f.interest)
+    lender: f.lender || '',
+    interest: Number(f.interest) || 0
   }
 }
 

@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode } from 'react'
+import { ReactElement, ReactNode, useCallback } from 'react'
 import { Helmet } from 'react-helmet'
 import { FormProvider, useForm } from 'react-hook-form'
 import { useDispatch, useSelector, TaxesState } from 'ustaxes/redux'
@@ -10,6 +10,7 @@ import { Patterns } from 'ustaxes/components/Patterns'
 import { Grid, Box } from '@material-ui/core'
 import { Alert } from '@material-ui/lab'
 import { intentionallyFloat } from 'ustaxes/core/util'
+import { useAutoSave } from 'ustaxes/hooks'
 
 interface ItemizedDeductionUserInput {
   medicalAndDental: string | number
@@ -61,18 +62,18 @@ const toItemizedDeductions = (
   f: ItemizedDeductionUserInput
 ): ItemizedDeductions => {
   return {
-    medicalAndDental: Number(f.medicalAndDental),
-    stateAndLocalTaxes: Number(f.stateAndLocalTaxes),
+    medicalAndDental: Number(f.medicalAndDental) || 0,
+    stateAndLocalTaxes: Number(f.stateAndLocalTaxes) || 0,
     isSalesTax: f.isSalesTax,
-    stateAndLocalPropertyTaxes: Number(f.stateAndLocalPropertyTaxes),
-    stateAndLocalRealEstateTaxes: Number(f.stateAndLocalRealEstateTaxes),
-    interest8a: Number(f.interest8a),
-    interest8b: Number(f.interest8b),
-    interest8c: Number(f.interest8c),
-    interest8d: Number(f.interest8d),
-    investmentInterest: Number(f.investmentInterest),
-    charityCashCheck: Number(f.charityCashCheck),
-    charityOther: Number(f.charityOther)
+    stateAndLocalPropertyTaxes: Number(f.stateAndLocalPropertyTaxes) || 0,
+    stateAndLocalRealEstateTaxes: Number(f.stateAndLocalRealEstateTaxes) || 0,
+    interest8a: Number(f.interest8a) || 0,
+    interest8b: Number(f.interest8b) || 0,
+    interest8c: Number(f.interest8c) || 0,
+    interest8d: Number(f.interest8d) || 0,
+    investmentInterest: Number(f.investmentInterest) || 0,
+    charityCashCheck: Number(f.charityCashCheck) || 0,
+    charityOther: Number(f.charityOther) || 0
   }
 }
 
@@ -94,6 +95,20 @@ export const ItemizedDeductionsInfo = (): ReactElement => {
   const { handleSubmit, watch } = methods
 
   const dispatch = useDispatch()
+
+  // Auto-save handler
+  const handleAutoSave = useCallback(
+    (form: ItemizedDeductionUserInput) => {
+      dispatch(setItemizedDeductions(toItemizedDeductions(form)))
+    },
+    [dispatch]
+  )
+
+  // Enable auto-save
+  useAutoSave({
+    watch,
+    onSave: handleAutoSave
+  })
 
   const onSubmit = (form: ItemizedDeductionUserInput): void => {
     dispatch(setItemizedDeductions(toItemizedDeductions(form)))

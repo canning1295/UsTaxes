@@ -55,17 +55,15 @@ const blankUserInput: HSAUserInput = {
 
 const toHSA = (formData: HSAUserInput): HealthSavingsAccount<string> => ({
   ...formData,
-  // Note we are not error checking here because
-  // we are already in the input validated happy path
-  // of handleSubmit.
+  // Use || 0 to handle empty strings for auto-save support
   label: formData.label,
   coverageType: formData.coverageType,
-  contributions: parseInt(formData.contributions),
+  contributions: parseInt(formData.contributions) || 0,
   personRole: formData.personRole,
   startDate: formData.startDate.toISOString(),
   endDate: formData.endDate.toISOString(),
-  totalDistributions: parseInt(formData.totalDistributions),
-  qualifiedDistributions: parseInt(formData.qualifiedDistributions)
+  totalDistributions: parseInt(formData.totalDistributions) || 0,
+  qualifiedDistributions: parseInt(formData.qualifiedDistributions) || 0
 })
 
 const toHSAUserInput = (data: HealthSavingsAccount): HSAUserInput => ({

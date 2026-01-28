@@ -32,11 +32,7 @@ import { Grid, Box, Button, Paper } from '@material-ui/core'
 import { Work } from '@material-ui/icons'
 import { addW2, editW2, removeW2 } from 'ustaxes/redux/actions'
 import { Alert } from '@material-ui/lab'
-import {
-  enumKeys,
-  parseFormNumber,
-  parseFormNumberOrThrow
-} from 'ustaxes/core/util'
+import { enumKeys, parseFormNumber } from 'ustaxes/core/util'
 
 interface IncomeW2UserInput {
   employer?: Employer
@@ -72,18 +68,17 @@ const blankW2UserInput: IncomeW2UserInput = {
 
 const toIncomeW2 = (formData: IncomeW2UserInput): IncomeW2 => ({
   ...formData,
-  // Note we are not error checking here because
-  // we are already in the input validated happy path
-  // of handleSubmit.
-  income: parseFormNumberOrThrow(formData.income),
-  medicareIncome: parseFormNumberOrThrow(formData.medicareIncome),
-  fedWithholding: parseFormNumberOrThrow(formData.fedWithholding),
-  ssWages: parseFormNumberOrThrow(formData.ssWages),
-  ssWithholding: parseFormNumberOrThrow(formData.ssWithholding),
-  medicareWithholding: parseFormNumberOrThrow(formData.medicareWithholding),
+  // Use parseFormNumber with default of 0 to allow auto-save of partial form data.
+  // Empty or invalid values default to 0, enabling save even with incomplete fields.
+  income: parseFormNumber(formData.income) ?? 0,
+  medicareIncome: parseFormNumber(formData.medicareIncome) ?? 0,
+  fedWithholding: parseFormNumber(formData.fedWithholding) ?? 0,
+  ssWages: parseFormNumber(formData.ssWages) ?? 0,
+  ssWithholding: parseFormNumber(formData.ssWithholding) ?? 0,
+  medicareWithholding: parseFormNumber(formData.medicareWithholding) ?? 0,
   state: formData.state,
-  stateWages: parseFormNumberOrThrow(formData.stateWages),
-  stateWithholding: parseFormNumberOrThrow(formData.stateWithholding),
+  stateWages: parseFormNumber(formData.stateWages) ?? 0,
+  stateWithholding: parseFormNumber(formData.stateWithholding) ?? 0,
   personRole: formData.personRole ?? PersonRole.PRIMARY,
   box12: _.mapValues(formData.box12, (v) => parseFormNumber(v))
 })

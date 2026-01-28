@@ -100,9 +100,14 @@ const toProperty = (formData: PropertyAddForm): Property => {
     otherExpenseType
   } = formData
 
-  if (address === undefined || propertyType === undefined) {
-    throw new Error('Validation failed')
+  // Use default values for empty/undefined fields to support auto-save
+  const defaultAddress = address ?? {
+    address: '',
+    city: '',
+    state: undefined,
+    zip: ''
   }
+  const defaultPropertyType: PropertyTypeName = propertyType ?? 'singleFamily'
 
   const newExpenses: Partial<{ [K in PropertyExpenseTypeName]: number }> =
     Object.fromEntries(
@@ -112,12 +117,12 @@ const toProperty = (formData: PropertyAddForm): Property => {
     )
 
   return {
-    address,
-    rentalDays: Number(rentalDays),
+    address: defaultAddress,
+    rentalDays: Number(rentalDays) || 0,
     qualifiedJointVenture,
-    rentReceived: Number(rentReceived),
-    personalUseDays: Number(personalUseDays),
-    propertyType,
+    rentReceived: Number(rentReceived) || 0,
+    personalUseDays: Number(personalUseDays) || 0,
+    propertyType: defaultPropertyType,
     otherPropertyType,
     expenses: newExpenses,
     otherExpenseType

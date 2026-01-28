@@ -1,4 +1,4 @@
-import { ReactElement, useEffect } from 'react'
+import { ReactElement, useEffect, useCallback } from 'react'
 import { Helmet } from 'react-helmet'
 import { Grid, List, ListItem } from '@material-ui/core'
 import { useDispatch, useSelector, TaxesState } from 'ustaxes/redux'
@@ -10,6 +10,7 @@ import { FormProvider, useForm } from 'react-hook-form'
 import { usePager } from './pager'
 import _ from 'lodash'
 import { intentionallyFloat } from 'ustaxes/core/util'
+import { useAutoSave } from 'ustaxes/hooks'
 
 const emptyQuestions: Responses = {
   CRYPTO: false,
@@ -34,6 +35,7 @@ const Questions = (): ReactElement => {
     handleSubmit,
     getValues,
     reset,
+    watch,
     formState: { isDirty }
   } = methods
 
@@ -49,6 +51,36 @@ const Questions = (): ReactElement => {
     }
   })
 
+  const dispatch = useDispatch()
+
+  // Auto-save handler
+  const handleAutoSave = useCallback(
+    (formData: Responses) => {
+      try {
+        // fix to remove unrequired answers:
+        const qtags = questions.map((q) => q.tag)
+        const unrequired = Object.keys(formData).filter(
+          (rtag) =>
+            qtags.find((t) => t === (rtag as QuestionTagName)) === undefined
+        )
+
+        const newResponses = {
+          ...formData,
+          ...Object.fromEntries(unrequired.map((k) => [k, undefined]))
+        }
+
+        dispatch(answerQuestion(newResponses))
+      } catch (e) {
+        // Ignore validation errors during auto-save
+        console.debug('Auto-save skipped due to validation:', e)
+      }
+    },
+    [dispatch, questions]
+  )
+
+  // Enable auto-save
+  useAutoSave({ watch, onSave: handleAutoSave })
+
   const currentAnswers: Responses = { ...emptyQuestions, ...currentValues }
 
   // This form can be rerendered because the global state was modified by
@@ -58,8 +90,6 @@ const Questions = (): ReactElement => {
       reset(stateAnswers)
     }
   }, [])
-
-  const dispatch = useDispatch()
 
   const onSubmit = (responses: Responses): void => {
     // fix to remove unrequired answers:

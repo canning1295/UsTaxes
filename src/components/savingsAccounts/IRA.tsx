@@ -68,25 +68,25 @@ const blankUserInput: IraUserInput = {
 
 const toIra = (formData: IraUserInput): Ira => ({
   ...formData,
-  // Note we are not error checking here because
-  // we are already in the input validated happy path
-  // of handleSubmit.
+  // Use || 0 to handle empty strings for auto-save support
   payer: formData.payer,
   personRole: formData.personRole,
-  grossDistribution: Number(formData.grossDistribution),
-  taxableAmount: Number(formData.taxableAmount),
+  grossDistribution: Number(formData.grossDistribution) || 0,
+  taxableAmount: Number(formData.taxableAmount) || 0,
   taxableAmountNotDetermined: formData.taxableAmountNotDetermined ?? false,
   totalDistribution: formData.totalDistribution ?? false,
-  federalIncomeTaxWithheld: Number(formData.federalIncomeTaxWithheld),
+  federalIncomeTaxWithheld: Number(formData.federalIncomeTaxWithheld) || 0,
   planType: formData.planType,
   // fields about contributions from form 5498
-  contributions: Number(formData.contributions),
-  rolloverContributions: Number(formData.rolloverContributions),
-  rothIraConversion: Number(formData.rothIraConversion),
-  recharacterizedContributions: Number(formData.recharacterizedContributions),
-  requiredMinimumDistributions: Number(formData.requiredMinimumDistributions),
-  lateContributions: Number(formData.lateContributions),
-  repayments: Number(formData.repayments)
+  contributions: Number(formData.contributions) || 0,
+  rolloverContributions: Number(formData.rolloverContributions) || 0,
+  rothIraConversion: Number(formData.rothIraConversion) || 0,
+  recharacterizedContributions:
+    Number(formData.recharacterizedContributions) || 0,
+  requiredMinimumDistributions:
+    Number(formData.requiredMinimumDistributions) || 0,
+  lateContributions: Number(formData.lateContributions) || 0,
+  repayments: Number(formData.repayments) || 0
 })
 
 const toIraUserInput = (data: Ira): IraUserInput => ({

@@ -1,4 +1,4 @@
-import { ReactElement, useEffect } from 'react'
+import { ReactElement, useEffect, useCallback } from 'react'
 import { Helmet } from 'react-helmet'
 import { useForm, FormProvider } from 'react-hook-form'
 import { useDispatch, useSelector, TaxesState } from 'ustaxes/redux'
@@ -6,8 +6,9 @@ import { LabeledInput, LabeledRadio } from './input'
 import { Patterns } from './Patterns'
 import { saveRefundInfo } from 'ustaxes/redux/actions'
 import _ from 'lodash'
+import { useAutoSave } from 'ustaxes/hooks'
 
-import { Refund } from 'ustaxes/core/data'
+import { Refund, AccountType } from 'ustaxes/core/data'
 import { usePager } from './pager'
 import { Grid } from '@material-ui/core'
 import { intentionallyFloat } from 'ustaxes/core/util'
@@ -36,10 +37,40 @@ export default function RefundBankAccount(): ReactElement {
     handleSubmit,
     reset,
     getValues,
+    watch,
     formState: { isDirty }
   } = methods
   // const variable dispatch to allow use inside function
   const dispatch = useDispatch()
+
+  // Auto-save handler
+  const handleAutoSave = useCallback(
+    (formData: Partial<Refund>) => {
+      try {
+        // Only save if we have at least one field with data
+        if (
+          formData.routingNumber ||
+          formData.accountNumber ||
+          formData.accountType
+        ) {
+          dispatch(
+            saveRefundInfo({
+              routingNumber: formData.routingNumber || '',
+              accountNumber: formData.accountNumber || '',
+              accountType: formData.accountType || AccountType.checking
+            })
+          )
+        }
+      } catch (e) {
+        // Ignore validation errors during auto-save
+        console.debug('Auto-save skipped due to validation:', e)
+      }
+    },
+    [dispatch]
+  )
+
+  // Enable auto-save
+  useAutoSave({ watch, onSave: handleAutoSave })
 
   const currentValues = {
     ...blankFormData,

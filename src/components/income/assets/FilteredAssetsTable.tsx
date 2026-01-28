@@ -1,5 +1,6 @@
-import { Button, Grid, useMediaQuery } from '@material-ui/core'
-import { ReactElement, useMemo, useState } from 'react'
+import { Button, Grid, IconButton, useMediaQuery } from '@material-ui/core'
+import { Delete, Edit } from '@material-ui/icons'
+import { ReactElement, useCallback, useMemo, useState } from 'react'
 import DataTable, { TableColumn } from 'react-data-table-component'
 import { FormProvider, useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
@@ -28,23 +29,29 @@ const blankFilter: AssetFilter = {
 }
 
 type Row = WithIndex<Asset<Date>>
-const assetTableColumns: TableColumn<Row>[] = [
+
+// Base columns without actions - actions are added dynamically in DisplayAssets
+const baseAssetTableColumns: TableColumn<Row>[] = [
   {
+    id: 'security',
     name: 'Security',
     selector: ({ name }) => name,
     sortable: true
   },
   {
+    id: 'openDate',
     name: 'Open Date',
     selector: ({ openDate }) => openDate.toISOString().slice(0, 10),
     sortable: true
   },
   {
+    id: 'closeDate',
     name: 'Sale Date',
     selector: ({ closeDate }) => closeDate?.toISOString().slice(0, 10) ?? '',
     sortable: true
   },
   {
+    id: 'costBasis',
     name: 'Cost basis',
     sortFunction: (a, b) => a.openPrice * a.quantity - b.openPrice * b.quantity,
     cell: ({ openPrice, quantity }) => (
@@ -53,6 +60,7 @@ const assetTableColumns: TableColumn<Row>[] = [
     sortable: true
   },
   {
+    id: 'proceeds',
     name: 'Proceeds',
     sortFunction: (a, b) =>
       (a.closePrice ?? 0) * a.quantity - (b.closePrice ?? 0) * b.quantity,
@@ -79,11 +87,15 @@ type WithIndex<A> = {
 interface DisplayAssetsProps {
   assets: WithIndex<Asset<Date>>[]
   deleteRows: (rows: number[]) => void
+  onEdit?: (index: number) => void
+  editingIndex?: number
 }
 
 const DisplayAssets = ({
   assets,
-  deleteRows
+  deleteRows,
+  onEdit,
+  editingIndex
 }: DisplayAssetsProps): ReactElement => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
 
@@ -93,6 +105,18 @@ const DisplayAssets = ({
   const handleRowSelected = (event: SelectionEvent<WithIndex<Asset<Date>>>) => {
     setSelectedRows(event.selectedRows.map(({ idx }) => idx))
   }
+
+  const handleDeleteRow = useCallback(
+    (index: number) => {
+      const promptResult = window.confirm(
+        'Are you sure you want to delete this position?'
+      )
+      if (promptResult) {
+        deleteRows([index])
+      }
+    },
+    [deleteRows]
+  )
 
   const contextActions = useMemo(() => {
     const handleDelete = () => {
@@ -117,22 +141,84 @@ const DisplayAssets = ({
     )
   }, [selectedRows, cleared])
 
+  // Create columns with actions
+  const columns: TableColumn<Row>[] = useMemo(
+    () => [
+      ...baseAssetTableColumns,
+      {
+        id: 'actions',
+        name: 'Actions',
+        cell: (row: Row) => (
+          <>
+            {onEdit && (
+              <IconButton
+                size="small"
+                onClick={() => onEdit(row.idx)}
+                title="Edit"
+                style={{ color: 'inherit' }}
+              >
+                <Edit fontSize="small" />
+              </IconButton>
+            )}
+            <IconButton
+              size="small"
+              onClick={() => handleDeleteRow(row.idx)}
+              title="Delete"
+              style={{ color: 'inherit' }}
+            >
+              <Delete fontSize="small" />
+            </IconButton>
+          </>
+        ),
+        width: '100px',
+        right: true
+      }
+    ],
+    [onEdit, handleDeleteRow]
+  )
+
+  // Custom row styles for highlighting the editing row
+  const conditionalRowStyles = useMemo(
+    () => [
+      {
+        when: (row: Row) => row.idx === editingIndex,
+        style: {
+          border: '2px solid #4caf50', // Theme green border
+          backgroundColor: prefersDarkMode
+            ? 'rgba(76, 175, 80, 0.15)'
+            : 'rgba(76, 175, 80, 0.1)'
+        }
+      }
+    ],
+    [editingIndex, prefersDarkMode]
+  )
+
   return (
     <DataTable
       title="Assets"
-      columns={assetTableColumns}
+      columns={columns}
       data={assets}
+      keyField="idx"
       selectableRows
       pagination
       onSelectedRowsChange={handleRowSelected}
       contextActions={contextActions}
       clearSelectedRows={cleared}
       theme={prefersDarkMode ? 'dark' : 'normal'}
+      conditionalRowStyles={conditionalRowStyles}
     />
   )
 }
 
-const FilteredAssetsTable = (): ReactElement => {
+interface FilteredAssetsTableProps {
+  onEdit?: (index: number) => void
+  editingIndex?: number
+}
+
+const FilteredAssetsTable = ({
+  onEdit,
+  editingIndex
+}: FilteredAssetsTableProps = {}): ReactElement => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
   const activeYear: TaxYear = useSelector(
     (state: YearsTaxesState) => state.activeYear
@@ -290,6 +376,8 @@ const FilteredAssetsTable = (): ReactElement => {
           deleteRows={(rows) =>
             dispatch(actions.removeAssets(rows)(activeYear))
           }
+          onEdit={onEdit}
+          editingIndex={editingIndex}
         />
       </Grid>
     </Grid>
