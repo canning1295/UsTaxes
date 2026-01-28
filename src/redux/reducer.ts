@@ -554,8 +554,15 @@ const appSettingsReducer = (
   state: AppSettings = defaultAppSettings,
   action: Actions
 ): AppSettings => {
-  // Ensure completedSections is always an array (handles persisted state migration)
-  let completedSections = state.completedSections ?? []
+  // Get the year from the action
+  const year = action.year
+
+  // Get completed sections for the current year (handles migration from old format)
+  const completedSectionsByYear = state.completedSectionsByYear ?? {}
+  let completedSections = completedSectionsByYear[year] ?? []
+
+  // Track if completedSections changed
+  const originalSections = completedSections
 
   // Auto-unmark section when data changes
   const affectedSection = actionToSectionId[action.type as ActionName]
@@ -567,7 +574,6 @@ const appSettingsReducer = (
     case ActionName.TOGGLE_AUTO_SAVE: {
       return {
         ...state,
-        completedSections,
         autoSaveEnabled: action.formData
       }
     }
@@ -578,24 +584,33 @@ const appSettingsReducer = (
       }
       return {
         ...state,
-        completedSections: [...completedSections, sectionId]
+        completedSectionsByYear: {
+          ...completedSectionsByYear,
+          [year]: [...completedSections, sectionId]
+        }
       }
     }
     case ActionName.UNMARK_SECTION_COMPLETE: {
       const sectionId = action.formData
       return {
         ...state,
-        completedSections: completedSections.filter((s) => s !== sectionId)
+        completedSectionsByYear: {
+          ...completedSectionsByYear,
+          [year]: completedSections.filter((s) => s !== sectionId)
+        }
       }
     }
     default: {
       // Only return a new object if completedSections actually changed
       // (e.g., from auto-unmark when data changes). Otherwise, return
       // the original state to preserve redux-persist rehydration.
-      if (completedSections !== state.completedSections) {
+      if (completedSections !== originalSections) {
         return {
           ...state,
-          completedSections
+          completedSectionsByYear: {
+            ...completedSectionsByYear,
+            [year]: completedSections
+          }
         }
       }
       return state

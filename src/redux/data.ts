@@ -53,12 +53,13 @@ export type SectionId =
  */
 export interface AppSettings {
   autoSaveEnabled: boolean
-  completedSections: SectionId[]
+  /** Per-year mapping of completed section IDs */
+  completedSectionsByYear: { [K in TaxYear]?: SectionId[] }
 }
 
 export const defaultAppSettings: AppSettings = {
   autoSaveEnabled: false,
-  completedSections: []
+  completedSectionsByYear: {}
 }
 
 export type YearsTaxesState<D = Date> = { [K in TaxYear]: Information<D> } & {

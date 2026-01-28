@@ -141,7 +141,7 @@ export const migrateAddAppSettings = (state: any): any => {
       ...state,
       appSettings: {
         ...state.appSettings,
-        completedSections: []
+        completedSectionsByYear: {}
       }
     }
   }
@@ -149,16 +149,38 @@ export const migrateAddAppSettings = (state: any): any => {
 }
 
 /**
- * Migration to ensure completedSections exists in appSettings
- * For users who have appSettings but are missing completedSections
+ * Migration to convert completedSections to completedSectionsByYear
+ * This handles the per-year tracking of completed sections
  */
-export const migrateAddCompletedSections = (state: any): any => {
-  if (state.appSettings && !state.appSettings.completedSections) {
-    return {
-      ...state,
-      appSettings: {
-        ...state.appSettings,
-        completedSections: []
+export const migrateCompletedSectionsToPerYear = (state: any): any => {
+  if (state.appSettings) {
+    const oldCompletedSections = state.appSettings.completedSections
+    const hasOldFormat =
+      Array.isArray(oldCompletedSections) && oldCompletedSections.length > 0
+    const hasNewFormat = state.appSettings.completedSectionsByYear !== undefined
+
+    // If we have old format data, migrate it to the active year
+    if (hasOldFormat && !hasNewFormat) {
+      const activeYear = state.activeYear || 'Y2025'
+      return {
+        ...state,
+        appSettings: {
+          autoSaveEnabled: state.appSettings.autoSaveEnabled ?? false,
+          completedSectionsByYear: {
+            [activeYear]: oldCompletedSections
+          }
+        }
+      }
+    }
+
+    // Ensure completedSectionsByYear exists
+    if (!hasNewFormat) {
+      return {
+        ...state,
+        appSettings: {
+          autoSaveEnabled: state.appSettings.autoSaveEnabled ?? false,
+          completedSectionsByYear: {}
+        }
       }
     }
   }

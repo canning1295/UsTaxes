@@ -26,7 +26,7 @@ import {
   migrateEachYear,
   migrateAgeAndBlindness,
   migrateAddAppSettings,
-  migrateAddCompletedSections
+  migrateCompletedSectionsToPerYear
 } from './migration'
 
 type SerializedState = { [K in TaxYear]: Information } & {
@@ -127,7 +127,7 @@ const migrations = {
   0: (state: any) => migrateEachYear(state),
   1: (state: any) => migrateAgeAndBlindness(state),
   2: (state: any) => migrateAddAppSettings(state),
-  3: (state: any) => migrateAddCompletedSections(state)
+  3: (state: any) => migrateCompletedSectionsToPerYear(state)
 }
 /* eslint-enable @typescript-eslint/no-unsafe-call */
 /* eslint-enable @typescript-eslint/no-unsafe-return */

@@ -55,9 +55,12 @@ export function usePagerWithCompletion(
 
   const [showModal, setShowModal] = useState(false)
 
-  // Fallback to empty array for backward compatibility with old persisted state
+  // Get completed sections for the active year (per-year tracking)
+  const activeYear = useSelector((state: YearsTaxesState) => state.activeYear)
   const completedSections = useSelector(
-    (state: YearsTaxesState) => state.appSettings.completedSections ?? []
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    (state: YearsTaxesState) =>
+      state.appSettings.completedSectionsByYear[activeYear] ?? []
   )
 
   // Get current section ID from URL (may be undefined if path not in map)

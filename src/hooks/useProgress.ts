@@ -263,10 +263,11 @@ export function useProgress(): ProgressSummary {
   const activeYear = useSelector((state: YearsTaxesState) => state.activeYear)
   const information = useSelector((state: YearsTaxesState) => state[activeYear])
   const assets = useSelector((state: YearsTaxesState) => state.assets)
-  // Fallback to empty array for backward compatibility with old persisted state
+  // Get completed sections for the active year (per-year tracking)
   const completedSections = useSelector(
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    (state: YearsTaxesState) => state.appSettings?.completedSections ?? []
+    (state: YearsTaxesState) =>
+      state.appSettings.completedSectionsByYear[activeYear] ?? []
   )
 
   return useMemo(() => {
