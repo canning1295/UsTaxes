@@ -18,6 +18,8 @@ import GitHubIcon from '@material-ui/icons/GitHub'
 import TwitterIcon from '@material-ui/icons/Twitter'
 import { HelpOutlineRounded, Settings, Security } from '@material-ui/icons'
 import Urls from 'ustaxes/data/urls'
+import { OverallProgressBar, SectionStatusIcon } from './ProgressIndicator'
+import { urlToSectionId } from 'ustaxes/hooks'
 
 const drawerWidth = 240
 
@@ -100,24 +102,29 @@ function ResponsiveDrawer(props: DrawerItemsProps): ReactElement {
   const drawer = (
     <>
       {/* {isMobile && <Toolbar />} */}
+      <OverallProgressBar />
       {sections.map(({ title, items }) => (
         <Fragment key={`section ${title}`}>
           <List
             subheader={<ListSubheader disableSticky>{title}</ListSubheader>}
             className={classes.list}
           >
-            {items.map((item) => (
-              <ListItem
-                button
-                classes={{}}
-                key={item.title}
-                component={NavLink}
-                selected={location.pathname === item.url}
-                to={item.url}
-              >
-                <ListItemText primary={`${item.title}`} />
-              </ListItem>
-            ))}
+            {items.map((item) => {
+              const sectionId = urlToSectionId[item.url]
+              return (
+                <ListItem
+                  button
+                  classes={{}}
+                  key={item.title}
+                  component={NavLink}
+                  selected={location.pathname === item.url}
+                  to={item.url}
+                >
+                  <ListItemText primary={item.title} />
+                  {sectionId && <SectionStatusIcon sectionId={sectionId} />}
+                </ListItem>
+              )
+            })}
           </List>
           <Divider />
         </Fragment>
