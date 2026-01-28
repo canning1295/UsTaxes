@@ -19,7 +19,7 @@ import TwitterIcon from '@material-ui/icons/Twitter'
 import { HelpOutlineRounded, Settings, Security } from '@material-ui/icons'
 import Urls from 'ustaxes/data/urls'
 
-const drawerWidth = 240
+const drawerWidth = 280
 
 const useStyles = makeStyles<Theme, { isMobile: boolean }>((theme) =>
   createStyles({
@@ -43,12 +43,13 @@ const useStyles = makeStyles<Theme, { isMobile: boolean }>((theme) =>
     }),
     listSocial: {
       display: 'flex',
-      justifyContent: 'flex-end',
-      marginRight: theme.spacing(2)
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      padding: theme.spacing(1)
     },
     listItemSocial: {
-      flex: 0,
-      padding: 0
+      flex: '0 0 auto',
+      padding: theme.spacing(0.5)
     },
     list: {
       marginLeft: theme.spacing(0),
@@ -129,6 +130,8 @@ function ResponsiveDrawer(props: DrawerItemsProps): ReactElement {
               <HelpOutlineRounded />
             </IconButton>
           </Link>
+        </ListItem>
+        <ListItem className={classes.listItemSocial}>
           <IconButton
             color="secondary"
             aria-label="github, opens in new tab"
@@ -158,6 +161,8 @@ function ResponsiveDrawer(props: DrawerItemsProps): ReactElement {
               <Settings />
             </IconButton>
           </Link>
+        </ListItem>
+        <ListItem className={classes.listItemSocial}>
           <Link to={Urls.security}>
             <IconButton color="secondary" aria-label="security settings">
               <Security />
