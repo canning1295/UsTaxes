@@ -1,5 +1,4 @@
 import { Asset, Information, Person, TaxYear } from 'ustaxes/core/data'
-import { blankState } from './reducer'
 import { SecurityState } from './security/reducer'
 
 /**
@@ -9,10 +8,42 @@ import { SecurityState } from './security/reducer'
  */
 export type TaxesState = { information: Information }
 
+/**
+ * Blank state for a single year
+ */
+export const blankState: Information = {
+  f1099s: [],
+  w2s: [],
+  estimatedTaxes: [],
+  realEstate: [],
+  taxPayer: { dependents: [] },
+  questions: {},
+  f1098es: [],
+  f3921s: [],
+  scheduleK1Form1065s: [],
+  itemizedDeductions: undefined,
+  stateResidencies: [],
+  healthSavingsAccounts: [],
+  credits: [],
+  individualRetirementArrangements: []
+}
+
+/**
+ * App-wide settings (non-security related)
+ */
+export interface AppSettings {
+  autoSaveEnabled: boolean
+}
+
+export const defaultAppSettings: AppSettings = {
+  autoSaveEnabled: false
+}
+
 export type YearsTaxesState<D = Date> = { [K in TaxYear]: Information<D> } & {
   assets: Asset<D>[]
   activeYear: TaxYear
   security: SecurityState
+  appSettings: AppSettings
 }
 
 import { defaultSecuritySettings, defaultLockState } from 'ustaxes/crypto'
@@ -30,7 +61,8 @@ export const blankYearTaxesState: YearsTaxesState = {
   security: {
     settings: defaultSecuritySettings,
     lock: defaultLockState
-  }
+  },
+  appSettings: defaultAppSettings
 }
 
 export const dateToStringPerson = <P extends Person<Date>>(

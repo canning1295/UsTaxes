@@ -8,7 +8,7 @@ import {
   TaxYears,
   FilingStatus
 } from 'ustaxes/core/data'
-import { blankState } from './reducer'
+import { blankState } from './data'
 import { USTState } from './store'
 
 export interface QualifyingInformationV0 {
@@ -119,3 +119,20 @@ export const migrateEachYear = <S extends USTState>(state: S): S =>
       }
     }
   }, state)
+
+/**
+ * Migration to add appSettings field for auto-save and other app preferences
+ */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+export const migrateAddAppSettings = (state: any): any => {
+  if (!state.appSettings) {
+    return {
+      ...state,
+      appSettings: {
+        autoSaveEnabled: false
+      }
+    }
+  }
+  return state
+}
+/* eslint-enable @typescript-eslint/no-unsafe-member-access */

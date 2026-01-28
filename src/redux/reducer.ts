@@ -1,30 +1,21 @@
 /* eslint-disable indent */
 import { CombinedState, combineReducers, Reducer } from 'redux'
 import { Asset, FilingStatus, Information, TaxYear } from 'ustaxes/core/data'
-import { YearsTaxesState } from '.'
+import {
+  YearsTaxesState,
+  AppSettings,
+  defaultAppSettings,
+  blankState,
+  stringToDateInfo
+} from './data'
 import { ActionName, Actions } from './actions'
-import { stringToDateInfo } from './data'
 import { securityReducer } from './security/reducer'
 import { SecurityActions } from './security/actions'
 
-const DEFAULT_TAX_YEAR: TaxYear = 'Y2025'
+// Re-export for backward compatibility
+export { blankState }
 
-export const blankState: Information = {
-  f1099s: [],
-  w2s: [],
-  estimatedTaxes: [],
-  realEstate: [],
-  taxPayer: { dependents: [] },
-  questions: {},
-  f1098es: [],
-  f3921s: [],
-  scheduleK1Form1065s: [],
-  itemizedDeductions: undefined,
-  stateResidencies: [],
-  healthSavingsAccounts: [],
-  credits: [],
-  individualRetirementArrangements: []
-}
+const DEFAULT_TAX_YEAR: TaxYear = 'Y2025'
 
 const formReducer = (
   state: Information | undefined,
@@ -478,6 +469,23 @@ const assetReducer = (
   }
 }
 
+const appSettingsReducer = (
+  state: AppSettings = defaultAppSettings,
+  action: Actions
+): AppSettings => {
+  switch (action.type) {
+    case ActionName.TOGGLE_AUTO_SAVE: {
+      return {
+        ...state,
+        autoSaveEnabled: action.formData
+      }
+    }
+    default: {
+      return state
+    }
+  }
+}
+
 const rootReducer: Reducer<
   CombinedState<YearsTaxesState>,
   Actions | SecurityActions
@@ -491,7 +499,8 @@ const rootReducer: Reducer<
   Y2024: guardByYear('Y2024'),
   Y2025: guardByYear('Y2025'),
   activeYear,
-  security: securityReducer
+  security: securityReducer,
+  appSettings: appSettingsReducer
 }) as Reducer<CombinedState<YearsTaxesState>, Actions | SecurityActions>
 
 export default rootReducer

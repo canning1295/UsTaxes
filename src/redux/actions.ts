@@ -94,7 +94,8 @@ export enum ActionName {
   REMOVE_SCHEDULE_K1_F1065 = 'SCHEDULE_K1_F1065/REMOVE',
   ADD_CREDIT = 'CREDIT/ADD',
   EDIT_CREDIT = 'CREDIT/EDIT',
-  REMOVE_CREDIT = 'CREDIT/REMOVE'
+  REMOVE_CREDIT = 'CREDIT/REMOVE',
+  TOGGLE_AUTO_SAVE = 'APP_SETTINGS/TOGGLE_AUTO_SAVE'
 }
 
 interface Save<T, R> {
@@ -179,6 +180,7 @@ type RemoveScheduleK1Form1065 = Save<
 type AddCredit = Save<typeof ActionName.ADD_CREDIT, Credit>
 type EditCredit = Save<typeof ActionName.EDIT_CREDIT, EditCreditAction>
 type RemoveCredit = Save<typeof ActionName.REMOVE_CREDIT, number>
+type ToggleAutoSave = Save<typeof ActionName.TOGGLE_AUTO_SAVE, boolean>
 
 export type Actions =
   | SaveRefundInfo
@@ -230,6 +232,7 @@ export type Actions =
   | AddCredit
   | EditCredit
   | RemoveCredit
+  | ToggleAutoSave
 
 export type SignalAction = (year: TaxYear) => Actions
 export type ActionCreator<A> = (formData: A) => SignalAction
@@ -522,4 +525,8 @@ export const editCredit: ActionCreator<EditCreditAction> = makeActionCreator(
 export const removeCredit: ActionCreator<number> = makeActionCreator(
   ActionName.REMOVE_CREDIT,
   indexValidator
+)
+
+export const toggleAutoSave: ActionCreator<boolean> = makeActionCreator(
+  ActionName.TOGGLE_AUTO_SAVE
 )

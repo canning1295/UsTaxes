@@ -22,7 +22,11 @@ import { PersistPartial } from 'redux-persist/es/persistReducer'
 import { createTransform } from 'redux-persist'
 import { FSAction } from './fs/Actions'
 import { fsReducer } from './fs/FSReducer'
-import { migrateEachYear, migrateAgeAndBlindness } from './migration'
+import {
+  migrateEachYear,
+  migrateAgeAndBlindness,
+  migrateAddAppSettings
+} from './migration'
 
 type SerializedState = { [K in TaxYear]: Information } & {
   assets: Asset<string>[]
@@ -58,6 +62,10 @@ const serializeDeserialize =
       return Object.keys(ob).reduce((acc, k) => {
         const newValue = (() => {
           if (dateKey.exec(k) !== null) {
+            // Handle undefined/null date values
+            if (ob[k] === undefined || ob[k] === null) {
+              return ob[k]
+            }
             return f(ob[k] as Date | string)
           }
           return recur(ob[k])
@@ -115,7 +123,8 @@ const dateStringTransform = createTransform(
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 const migrations = {
   0: (state: any) => migrateEachYear(state),
-  1: (state: any) => migrateAgeAndBlindness(state)
+  1: (state: any) => migrateAgeAndBlindness(state),
+  2: (state: any) => migrateAddAppSettings(state)
 }
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -130,7 +139,7 @@ const persistedReducer = fsReducer(
       // number will be compared and all migrations between
       // the persisted version and the version here will be
       // applied in order
-      version: 1,
+      version: 2,
       storage,
       migrate: createMigrate(migrations, { debug: false }),
       transforms: [dateStringTransform]

@@ -1,7 +1,7 @@
 import * as fc from 'fast-check'
 import * as util from 'ustaxes/core/util'
 import * as arbitraries from 'ustaxes/core/tests/arbitraries'
-import { YearsTaxesState } from 'ustaxes/redux'
+import { YearsTaxesState, defaultAppSettings } from 'ustaxes/redux'
 import prand from 'pure-rand'
 import { Asset, AssetType, TaxYear, TaxYears } from 'ustaxes/core/data'
 import { defaultSecuritySettings, defaultLockState } from 'ustaxes/crypto'
@@ -103,7 +103,8 @@ export const taxesState: fc.Arbitrary<YearsTaxesState> = taxYear.chain(
         security: {
           settings: defaultSecuritySettings,
           lock: defaultLockState
-        }
+        },
+        appSettings: defaultAppSettings
       }))
   }
 )
