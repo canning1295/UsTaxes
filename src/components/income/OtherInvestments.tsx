@@ -4,7 +4,7 @@ import { useForm, FormProvider } from 'react-hook-form'
 import { useDispatch, YearsTaxesState } from 'ustaxes/redux'
 import { useSelector } from 'react-redux'
 import { addAsset, editAsset } from 'ustaxes/redux/actions'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import { Asset, AssetType, State, TaxYears } from 'ustaxes/core/data'
 import {
   GenericLabeledDropdown,
@@ -121,7 +121,7 @@ export const OtherInvestments = (): ReactElement => {
   const closeDate = watch('closeDate')
   const dispatch = useDispatch()
 
-  const { onAdvance, navButtons } = usePager()
+  const { onAdvance, navButtons, completionModal } = usePagerWithCompletion()
 
   // Get the current editing index (either explicit edit or auto-saved new)
   const currentEditingIndex = editingIndex ?? autoSavedNewIndex
@@ -336,6 +336,7 @@ export const OtherInvestments = (): ReactElement => {
         </form>
       </FormProvider>
       <TransactionImporter />
+      {completionModal}
     </>
   )
 }

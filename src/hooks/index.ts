@@ -1,3 +1,12 @@
 export { useAutoSave } from './useAutoSave'
-export { useProgress, calculateProgress, urlToSectionId } from './useProgress'
-export type { SectionProgress, ProgressSummary } from './useProgress'
+export {
+  useProgress,
+  useRawProgress,
+  calculateProgress,
+  urlToSectionId
+} from './useProgress'
+export type {
+  SectionProgress,
+  ProgressSummary,
+  SectionStatus
+} from './useProgress'

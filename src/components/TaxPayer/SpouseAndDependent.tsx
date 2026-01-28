@@ -28,8 +28,9 @@ import {
 } from 'ustaxes/redux/actions'
 import { PersonFields } from './PersonFields'
 import { FormListContainer } from 'ustaxes/components/FormContainer'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import { Box, Grid } from '@material-ui/core'
+import { isDependentValid } from 'ustaxes/forms/validation'
 import { Person } from '@material-ui/icons'
 import { Alert } from '@material-ui/lab'
 import { intentionallyFloat } from 'ustaxes/core/util'
@@ -153,6 +154,7 @@ export const AddDependentForm = (): ReactElement => {
       secondary={(a) => formatSSID(a.ssid)}
       icon={() => <Person />}
       removeItem={(i) => dispatch(removeDependent(i))}
+      isItemValid={isDependentValid}
     >
       <Grid container spacing={2}>
         <PersonFields />
@@ -236,7 +238,7 @@ export const FilingStatusDropdown = (): ReactElement => {
 
   const allowedFilingStatuses = filingStatuses(taxPayer)
 
-  const { onAdvance, navButtons } = usePager()
+  const { onAdvance, navButtons, completionModal } = usePagerWithCompletion()
 
   const defaultValues: { filingStatus: FilingStatus | '' } = {
     filingStatus: (() => {
@@ -310,6 +312,7 @@ export const FilingStatusDropdown = (): ReactElement => {
         {error}
         {navButtons}
       </form>
+      {completionModal}
     </FormProvider>
   )
 }

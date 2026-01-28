@@ -42,6 +42,20 @@ const useStyles = makeStyles(({ palette, spacing }: Theme) =>
     },
     strengthStrong: {
       color: palette.success.main
+    },
+    successButton: {
+      borderColor: palette.success.main,
+      color: palette.success.main,
+      '&:hover': {
+        borderColor: palette.success.dark,
+        backgroundColor: palette.success.light + '20'
+      }
+    },
+    successLink: {
+      color: palette.success.main,
+      '&:hover': {
+        color: palette.success.dark
+      }
     }
   })
 )

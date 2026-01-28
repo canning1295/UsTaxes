@@ -6,7 +6,7 @@ import { useForm, FormProvider } from 'react-hook-form'
 import { Icon, Grid } from '@material-ui/core'
 import { useDispatch, useSelector, TaxesState } from 'ustaxes/redux'
 import { add1099, edit1099, remove1099 } from 'ustaxes/redux/actions'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import {
   Person,
   PersonRole,
@@ -25,6 +25,7 @@ import {
 import { Patterns } from 'ustaxes/components/Patterns'
 import { FormListContainer } from 'ustaxes/components/FormContainer'
 import { intentionallyFloat } from 'ustaxes/core/util'
+import { isF1099Valid } from 'ustaxes/forms/validation'
 
 const showIncome = (a: Supported1099): ReactElement => {
   switch (a.type) {
@@ -244,7 +245,7 @@ export default function F1099Info(): ReactElement {
 
   const dispatch = useDispatch()
 
-  const { onAdvance, navButtons } = usePager()
+  const { onAdvance, navButtons, completionModal } = usePagerWithCompletion()
 
   const onSubmitAdd = (formData: F1099UserInput): void => {
     const payload = toF1099(formData)
@@ -427,6 +428,7 @@ export default function F1099Info(): ReactElement {
       onSubmitEdit={onSubmitEdit}
       items={f1099s.map((a) => toUserInput(a))}
       removeItem={(i) => dispatch(remove1099(i))}
+      isItemValid={isF1099Valid}
       primary={(f) => f.payer}
       secondary={(f) => {
         const form = toF1099(f)
@@ -493,6 +495,7 @@ export default function F1099Info(): ReactElement {
         {form}
         {navButtons}
       </form>
+      {completionModal}
     </FormProvider>
   )
 }

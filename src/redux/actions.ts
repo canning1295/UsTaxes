@@ -42,7 +42,7 @@ import {
 import * as validators from 'ustaxes/core/data/validate'
 import { index as indexValidator } from 'ustaxes/core/data/validate'
 import { ValidateFunction } from 'ajv'
-import { infoToStringInfo } from './data'
+import { infoToStringInfo, SectionId } from './data'
 
 export enum ActionName {
   SAVE_REFUND_INFO = 'SAVE_REFUND_INFO',
@@ -95,7 +95,9 @@ export enum ActionName {
   ADD_CREDIT = 'CREDIT/ADD',
   EDIT_CREDIT = 'CREDIT/EDIT',
   REMOVE_CREDIT = 'CREDIT/REMOVE',
-  TOGGLE_AUTO_SAVE = 'APP_SETTINGS/TOGGLE_AUTO_SAVE'
+  TOGGLE_AUTO_SAVE = 'APP_SETTINGS/TOGGLE_AUTO_SAVE',
+  MARK_SECTION_COMPLETE = 'APP_SETTINGS/MARK_SECTION_COMPLETE',
+  UNMARK_SECTION_COMPLETE = 'APP_SETTINGS/UNMARK_SECTION_COMPLETE'
 }
 
 interface Save<T, R> {
@@ -181,6 +183,14 @@ type AddCredit = Save<typeof ActionName.ADD_CREDIT, Credit>
 type EditCredit = Save<typeof ActionName.EDIT_CREDIT, EditCreditAction>
 type RemoveCredit = Save<typeof ActionName.REMOVE_CREDIT, number>
 type ToggleAutoSave = Save<typeof ActionName.TOGGLE_AUTO_SAVE, boolean>
+type MarkSectionComplete = Save<
+  typeof ActionName.MARK_SECTION_COMPLETE,
+  SectionId
+>
+type UnmarkSectionComplete = Save<
+  typeof ActionName.UNMARK_SECTION_COMPLETE,
+  SectionId
+>
 
 export type Actions =
   | SaveRefundInfo
@@ -233,6 +243,8 @@ export type Actions =
   | EditCredit
   | RemoveCredit
   | ToggleAutoSave
+  | MarkSectionComplete
+  | UnmarkSectionComplete
 
 export type SignalAction = (year: TaxYear) => Actions
 export type ActionCreator<A> = (formData: A) => SignalAction
@@ -530,3 +542,10 @@ export const removeCredit: ActionCreator<number> = makeActionCreator(
 export const toggleAutoSave: ActionCreator<boolean> = makeActionCreator(
   ActionName.TOGGLE_AUTO_SAVE
 )
+
+export const markSectionComplete: ActionCreator<SectionId> = makeActionCreator(
+  ActionName.MARK_SECTION_COMPLETE
+)
+
+export const unmarkSectionComplete: ActionCreator<SectionId> =
+  makeActionCreator(ActionName.UNMARK_SECTION_COMPLETE)

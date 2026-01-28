@@ -7,7 +7,7 @@ import { getRequiredQuestions } from 'ustaxes/core/data/questions'
 import { LabeledCheckbox, LabeledInput } from './input'
 import { answerQuestion } from 'ustaxes/redux/actions'
 import { FormProvider, useForm } from 'react-hook-form'
-import { usePager } from './pager'
+import { usePagerWithCompletion } from './usePagerWithCompletion'
 import _ from 'lodash'
 import { intentionallyFloat } from 'ustaxes/core/util'
 import { useAutoSave } from 'ustaxes/hooks'
@@ -41,7 +41,7 @@ const Questions = (): ReactElement => {
 
   const currentValues = getValues()
 
-  const { navButtons, onAdvance } = usePager()
+  const { navButtons, onAdvance, completionModal } = usePagerWithCompletion()
 
   const questions = getRequiredQuestions({
     ...information,
@@ -134,7 +134,12 @@ const Questions = (): ReactElement => {
       {navButtons}
     </form>
   )
-  return <FormProvider {...methods}>{page}</FormProvider>
+  return (
+    <FormProvider {...methods}>
+      {page}
+      {completionModal}
+    </FormProvider>
+  )
 }
 
 export default Questions

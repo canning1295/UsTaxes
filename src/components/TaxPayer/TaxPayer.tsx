@@ -19,7 +19,7 @@ import {
   TaxPayer
 } from 'ustaxes/core/data'
 import { PersonFields } from './PersonFields'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import {
   LabeledCheckbox,
   USStateDropDown,
@@ -124,7 +124,7 @@ export default function PrimaryTaxpayer(): ReactElement {
   // const variable dispatch to allow use inside function
   const dispatch = useDispatch()
 
-  const { onAdvance, navButtons } = usePager()
+  const { onAdvance, navButtons, completionModal } = usePagerWithCompletion()
 
   const taxPayer: TaxPayer | undefined = useSelector((state: TaxesState) => {
     return state.information.taxPayer
@@ -233,5 +233,10 @@ export default function PrimaryTaxpayer(): ReactElement {
       {navButtons}
     </form>
   )
-  return <FormProvider {...methods}>{page}</FormProvider>
+  return (
+    <FormProvider {...methods}>
+      {page}
+      {completionModal}
+    </FormProvider>
+  )
 }

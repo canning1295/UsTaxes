@@ -10,7 +10,7 @@ import {
   editProperty,
   removeProperty
 } from 'ustaxes/redux/actions'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import {
   Property,
   Address,
@@ -35,6 +35,7 @@ import { HouseOutlined } from '@material-ui/icons'
 import { FormListContainer } from 'ustaxes/components/FormContainer'
 import { Grid } from '@material-ui/core'
 import _ from 'lodash'
+import { isRealEstateValid } from 'ustaxes/forms/validation'
 
 interface PropertyAddForm {
   address?: Address
@@ -151,7 +152,7 @@ export default function RealEstate(): ReactElement {
 
   const dispatch = useDispatch()
 
-  const { onAdvance, navButtons } = usePager()
+  const { onAdvance, navButtons, completionModal } = usePagerWithCompletion()
 
   const activeYear: TaxYear = useSelector(
     (state: YearsTaxesState) => state.activeYear
@@ -231,6 +232,7 @@ export default function RealEstate(): ReactElement {
       onSubmitAdd={onAddProperty}
       onSubmitEdit={onEditProperty}
       removeItem={(i) => deleteProperty(i)}
+      isItemValid={isRealEstateValid}
     >
       <h3>Property Location</h3>
       <Grid container spacing={2}>
@@ -316,6 +318,7 @@ export default function RealEstate(): ReactElement {
         {form}
         {navButtons}
       </form>
+      {completionModal}
     </FormProvider>
   )
 }

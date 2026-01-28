@@ -7,7 +7,7 @@ import {
   editScheduleK1Form1065,
   removeScheduleK1Form1065
 } from 'ustaxes/redux/actions'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import {
   boxLabel,
   LabeledInput,
@@ -31,6 +31,7 @@ import {
   Spouse
 } from 'ustaxes/core/data'
 import { intentionallyFloat } from 'ustaxes/core/util'
+import { isScheduleK1Valid } from 'ustaxes/forms/validation'
 
 interface ScheduleK1Form1065UserInput {
   personRole: PersonRole.PRIMARY | PersonRole.SPOUSE
@@ -154,7 +155,7 @@ export const PartnershipIncome = (): ReactElement => {
   const { handleSubmit } = methods
   const dispatch = useDispatch()
 
-  const { onAdvance, navButtons } = usePager()
+  const { onAdvance, navButtons, completionModal } = usePagerWithCompletion()
 
   const onSubmitAdd = (formData: ScheduleK1Form1065UserInput): void => {
     const payload = toScheduleK1Form1065(formData)
@@ -176,6 +177,7 @@ export const PartnershipIncome = (): ReactElement => {
       items={ScheduleK1Form1065s.map((a) => toUserInput(a))}
       removeItem={(i) => dispatch(removeScheduleK1Form1065(i))}
       icon={() => <Business />}
+      isItemValid={isScheduleK1Valid}
       primary={(k1) => k1.partnershipName}
       secondary={(k1) => {
         const scheduleK1Form1065 = toScheduleK1Form1065(k1)
@@ -307,6 +309,7 @@ export const PartnershipIncome = (): ReactElement => {
         {spouseScheduleK1Form1065Message}
         {navButtons}
       </form>
+      {completionModal}
     </FormProvider>
   )
 }

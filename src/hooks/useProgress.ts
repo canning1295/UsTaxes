@@ -1,32 +1,52 @@
 import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import { YearsTaxesState } from 'ustaxes/redux/data'
-import { Information, TaxPayer } from 'ustaxes/core/data'
+import { YearsTaxesState, SectionId } from 'ustaxes/redux/data'
+import {
+  Information,
+  TaxPayer,
+  Refund,
+  Responses,
+  Asset
+} from 'ustaxes/core/data'
+import {
+  isW2Valid,
+  isF1099Valid,
+  isRealEstateValid,
+  isF3921Valid,
+  isScheduleK1Valid,
+  isEstimatedTaxValid,
+  isF1098eValid,
+  isHSAValid,
+  isIRAValid,
+  isDependentValid,
+  isAssetValid
+} from 'ustaxes/forms/validation'
+
+export type SectionStatus = 'not-started' | 'in-progress' | 'complete'
 
 export interface SectionProgress {
   id: string
   label: string
-  completed: boolean
+  status: SectionStatus
   itemCount?: number
-  required: boolean
 }
 
 export interface ProgressSummary {
   sections: SectionProgress[]
-  completedRequired: number
-  totalRequired: number
-  completedOptional: number
-  totalOptional: number
+  completedCount: number
+  totalCount: number
   overallPercentage: number
 }
 
 /**
- * Check if primary taxpayer info is complete
+ * Get the status of primary taxpayer section
  */
-const isPrimaryTaxpayerComplete = (taxPayer: TaxPayer): boolean => {
+const getPrimaryTaxpayerStatus = (taxPayer: TaxPayer): SectionStatus => {
   const p = taxPayer.primaryPerson
-  if (!p) return false
-  return !!(
+  if (!p) return 'not-started'
+
+  // Check if all required fields are filled
+  const isComplete = !!(
     p.firstName &&
     p.lastName &&
     p.ssid &&
@@ -34,135 +54,205 @@ const isPrimaryTaxpayerComplete = (taxPayer: TaxPayer): boolean => {
     p.address.city &&
     (p.address.state || p.address.foreignCountry)
   )
+
+  if (isComplete) return 'complete'
+
+  // If any field has data, it's in-progress
+  const hasAnyData = !!(p.firstName || p.lastName || p.ssid)
+  return hasAnyData ? 'in-progress' : 'not-started'
 }
 
 /**
- * Check if refund information is complete (optional but good to have)
+ * Get status for refund information
  */
-const isRefundComplete = (info: Information): boolean => {
-  const r = info.refund
-  if (!r) return false
-  return !!(r.routingNumber && r.accountNumber && r.accountType)
+const getRefundStatus = (refund: Refund | undefined): SectionStatus => {
+  if (!refund) return 'not-started'
+
+  const isComplete = !!(
+    refund.routingNumber &&
+    refund.accountNumber &&
+    refund.accountType
+  )
+  if (isComplete) return 'complete'
+
+  const hasAnyData = !!(refund.routingNumber || refund.accountNumber)
+  return hasAnyData ? 'in-progress' : 'not-started'
+}
+
+/**
+ * Get status for informational questions
+ * Questions are complete if all boolean questions have been answered (are not undefined)
+ */
+const getQuestionsStatus = (
+  questions: Responses | undefined
+): SectionStatus => {
+  if (!questions) return 'not-started'
+
+  // Check if any questions have been answered (not undefined)
+  const booleanQuestions = [
+    questions.CRYPTO,
+    questions.FOREIGN_ACCOUNT_EXISTS,
+    questions.FINCEN_114,
+    questions.FOREIGN_TRUST_RELATIONSHIP,
+    questions.LIVE_APART_FROM_SPOUSE
+  ]
+
+  const answeredCount = booleanQuestions.filter((q) => q !== undefined).length
+
+  if (answeredCount === 0) return 'not-started'
+  if (answeredCount === booleanQuestions.length) return 'complete'
+  return 'in-progress'
+}
+
+/**
+ * Get status for array-based sections (W2s, 1099s, etc.)
+ * Each item needs to have minimum data to count as a valid entry
+ */
+const getArraySectionStatus = <T>(
+  items: T[],
+  isItemComplete: (item: T) => boolean
+): SectionStatus => {
+  if (items.length === 0) return 'not-started'
+
+  // All items must be complete for section to be complete
+  const allComplete = items.every(isItemComplete)
+  if (allComplete) return 'complete'
+
+  // Some items exist but not all complete = in-progress
+  return 'in-progress'
 }
 
 /**
  * Calculate progress for all sections
  */
-export const calculateProgress = (info: Information): ProgressSummary => {
+export const calculateProgress = (
+  info: Information,
+  assets: Asset<Date>[] = []
+): ProgressSummary => {
   const sections: SectionProgress[] = [
-    // Required sections
+    // Personal section
     {
       id: 'primary-taxpayer',
       label: 'Primary Taxpayer',
-      completed: isPrimaryTaxpayerComplete(info.taxPayer),
-      required: true
+      status: getPrimaryTaxpayerStatus(info.taxPayer)
     },
-    // Optional but commonly used sections
     {
       id: 'spouse-dependents',
       label: 'Spouse and Dependents',
-      completed: info.taxPayer.dependents.length > 0 || !!info.taxPayer.spouse,
+      status: (() => {
+        const deps = info.taxPayer.dependents
+        const hasSpouse = !!info.taxPayer.spouse
+        if (deps.length === 0 && !hasSpouse) return 'not-started'
+        // Check if all dependents are valid
+        const allDepsValid = deps.every((d) => isDependentValid(d))
+        // Spouse is valid if it exists (validated on entry)
+        return allDepsValid ? 'complete' : 'in-progress'
+      })(),
       itemCount:
-        info.taxPayer.dependents.length + (info.taxPayer.spouse ? 1 : 0),
-      required: false
+        info.taxPayer.dependents.length + (info.taxPayer.spouse ? 1 : 0)
     },
+    // Income sections
     {
       id: 'w2s',
       label: 'Wages (W2)',
-      completed: info.w2s.length > 0,
-      itemCount: info.w2s.length,
-      required: false
+      status: getArraySectionStatus(info.w2s, isW2Valid),
+      itemCount: info.w2s.length
     },
     {
       id: 'f1099s',
       label: 'Income (1099)',
-      completed: info.f1099s.length > 0,
-      itemCount: info.f1099s.length,
-      required: false
+      status: getArraySectionStatus(info.f1099s, isF1099Valid),
+      itemCount: info.f1099s.length
     },
     {
       id: 'real-estate',
       label: 'Rental Income',
-      completed: info.realEstate.length > 0,
-      itemCount: info.realEstate.length,
-      required: false
+      status: getArraySectionStatus(info.realEstate, isRealEstateValid),
+      itemCount: info.realEstate.length
+    },
+    {
+      id: 'other-investments',
+      label: 'Other Investments',
+      status: getArraySectionStatus(assets, isAssetValid),
+      itemCount: assets.length
     },
     {
       id: 'stock-options',
       label: 'Stock Options',
-      completed: info.f3921s.length > 0,
-      itemCount: info.f3921s.length,
-      required: false
+      status: getArraySectionStatus(info.f3921s, isF3921Valid),
+      itemCount: info.f3921s.length
     },
     {
       id: 'partnership-income',
       label: 'Partnership Income',
-      completed: info.scheduleK1Form1065s.length > 0,
-      itemCount: info.scheduleK1Form1065s.length,
-      required: false
+      status: getArraySectionStatus(
+        info.scheduleK1Form1065s,
+        isScheduleK1Valid
+      ),
+      itemCount: info.scheduleK1Form1065s.length
     },
+    // Payments section
     {
       id: 'estimated-taxes',
       label: 'Estimated Taxes',
-      completed: info.estimatedTaxes.length > 0,
-      itemCount: info.estimatedTaxes.length,
-      required: false
+      status: getArraySectionStatus(info.estimatedTaxes, isEstimatedTaxValid),
+      itemCount: info.estimatedTaxes.length
     },
+    // Deductions section
     {
       id: 'student-loans',
       label: 'Student Loan Interest',
-      completed: info.f1098es.length > 0,
-      itemCount: info.f1098es.length,
-      required: false
+      status: getArraySectionStatus(info.f1098es, isF1098eValid),
+      itemCount: info.f1098es.length
     },
     {
       id: 'itemized-deductions',
       label: 'Itemized Deductions',
-      completed: !!info.itemizedDeductions,
-      required: false
+      status: info.itemizedDeductions ? 'complete' : 'not-started'
     },
+    // Savings Accounts section
     {
       id: 'hsa',
       label: 'Health Savings Account',
-      completed: info.healthSavingsAccounts.length > 0,
-      itemCount: info.healthSavingsAccounts.length,
-      required: false
+      status: getArraySectionStatus(info.healthSavingsAccounts, isHSAValid),
+      itemCount: info.healthSavingsAccounts.length
     },
     {
       id: 'ira',
       label: 'IRA',
-      completed: info.individualRetirementArrangements.length > 0,
-      itemCount: info.individualRetirementArrangements.length,
-      required: false
+      status: getArraySectionStatus(
+        info.individualRetirementArrangements,
+        isIRAValid
+      ),
+      itemCount: info.individualRetirementArrangements.length
     },
+    // Questions section
+    {
+      id: 'questions',
+      label: 'Informational Questions',
+      status: getQuestionsStatus(info.questions)
+    },
+    // Results section
     {
       id: 'refund',
       label: 'Refund Information',
-      completed: isRefundComplete(info),
-      required: false
+      status: getRefundStatus(info.refund)
     }
   ]
 
-  const requiredSections = sections.filter((s) => s.required)
-  const optionalSections = sections.filter((s) => !s.required)
+  // Only count complete sections toward percentage
+  const completedCount = sections.filter((s) => s.status === 'complete').length
+  const totalCount = sections.length
 
-  const completedRequired = requiredSections.filter((s) => s.completed).length
-  const completedOptional = optionalSections.filter((s) => s.completed).length
-
-  // Calculate overall percentage based on required completion (100%)
-  // and optional sections (bonus)
-  const requiredPercentage =
-    requiredSections.length > 0
-      ? (completedRequired / requiredSections.length) * 100
-      : 100
+  // Calculate percentage: each section counts equally
+  const overallPercentage =
+    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   return {
     sections,
-    completedRequired,
-    totalRequired: requiredSections.length,
-    completedOptional,
-    totalOptional: optionalSections.length,
-    overallPercentage: requiredPercentage
+    completedCount,
+    totalCount,
+    overallPercentage
   }
 }
 
@@ -172,14 +262,88 @@ export const calculateProgress = (info: Information): ProgressSummary => {
 export function useProgress(): ProgressSummary {
   const activeYear = useSelector((state: YearsTaxesState) => state.activeYear)
   const information = useSelector((state: YearsTaxesState) => state[activeYear])
+  const assets = useSelector((state: YearsTaxesState) => state.assets)
+  // Fallback to empty array for backward compatibility with old persisted state
+  const completedSections = useSelector(
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    (state: YearsTaxesState) => state.appSettings?.completedSections ?? []
+  )
 
-  return useMemo(() => calculateProgress(information), [information])
+  return useMemo(() => {
+    const progress = calculateProgress(information, assets)
+
+    // A section is only shown as "complete" if:
+    // 1. User has explicitly marked it complete via the completion modal
+    // 2. AND the underlying data is valid (no invalid items)
+    //
+    // Without user confirmation, sections show as:
+    // - "not-started" if no data exists
+    // - "in-progress" if any data exists (even if valid)
+    //
+    // "Valid" means: either no items exist, or all items pass validation
+    const sectionsWithUserComplete = progress.sections.map((section) => {
+      const userMarkedComplete = completedSections.includes(
+        section.id as SectionId
+      )
+      // Data is valid if section is 'complete' OR 'not-started' (no invalid items)
+      const dataIsValid =
+        section.status === 'complete' || section.status === 'not-started'
+      const hasData = section.status !== 'not-started'
+
+      // Only mark as complete if user marked it AND data is valid
+      if (userMarkedComplete && dataIsValid) {
+        return { ...section, status: 'complete' as SectionStatus }
+      }
+
+      // If user marked it but data is now invalid, show as in-progress
+      if (userMarkedComplete && !dataIsValid) {
+        return { ...section, status: 'in-progress' as SectionStatus }
+      }
+
+      // If user hasn't marked it complete, show as in-progress if any data exists
+      // (even if all data is valid - user must explicitly confirm completion)
+      if (!userMarkedComplete && hasData) {
+        return { ...section, status: 'in-progress' as SectionStatus }
+      }
+
+      return section
+    })
+
+    const completedCount = sectionsWithUserComplete.filter(
+      (s) => s.status === 'complete'
+    ).length
+
+    return {
+      ...progress,
+      sections: sectionsWithUserComplete,
+      completedCount,
+      overallPercentage:
+        progress.totalCount > 0
+          ? Math.round((completedCount / progress.totalCount) * 100)
+          : 0
+    }
+  }, [information, assets, completedSections])
+}
+
+/**
+ * Hook to get raw progress information (before user completion overrides)
+ * This is useful for checking if data is valid before showing completion modal
+ */
+export function useRawProgress(): ProgressSummary {
+  const activeYear = useSelector((state: YearsTaxesState) => state.activeYear)
+  const information = useSelector((state: YearsTaxesState) => state[activeYear])
+  const assets = useSelector((state: YearsTaxesState) => state.assets)
+
+  return useMemo(
+    () => calculateProgress(information, assets),
+    [information, assets]
+  )
 }
 
 /**
  * Map URL paths to section IDs for progress tracking
  */
-export const urlToSectionId: Record<string, string> = {
+export const urlToSectionId: Record<string, SectionId> = {
   '/info': 'primary-taxpayer',
   '/spouseanddependent': 'spouse-dependents',
   '/income/w2jobinfo': 'w2s',

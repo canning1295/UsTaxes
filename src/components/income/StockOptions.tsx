@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet'
 import { useForm, FormProvider } from 'react-hook-form'
 import { TaxesState, useSelector, useDispatch } from 'ustaxes/redux'
 import { addF3921, editF3921, removeF3921 } from 'ustaxes/redux/actions'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import {
   LabeledInput,
   GenericLabeledDropdown,
@@ -25,6 +25,7 @@ import {
   Spouse
 } from 'ustaxes/core/data'
 import { intentionallyFloat } from 'ustaxes/core/util'
+import { isF3921Valid } from 'ustaxes/forms/validation'
 
 interface F3921UserInput {
   name: string
@@ -89,7 +90,7 @@ export const StockOptions = (): ReactElement => {
   const { handleSubmit } = methods
   const dispatch = useDispatch()
 
-  const { onAdvance, navButtons } = usePager()
+  const { onAdvance, navButtons, completionModal } = usePagerWithCompletion()
 
   const onSubmitAdd = (formData: F3921UserInput): void => {
     const payload = toF3921(formData)
@@ -111,6 +112,7 @@ export const StockOptions = (): ReactElement => {
       items={f3921s.map((a) => toUserInput(a))}
       removeItem={(i) => dispatch(removeF3921(i))}
       icon={() => <StockIcon />}
+      isItemValid={isF3921Valid}
       primary={(f) => f.name}
       secondary={(f) => {
         const f3921 = toF3921(f)
@@ -195,6 +197,7 @@ export const StockOptions = (): ReactElement => {
         {spouseF3921Message}
         {navButtons}
       </form>
+      {completionModal}
     </FormProvider>
   )
 }

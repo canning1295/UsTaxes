@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet'
 import { useSelector } from 'react-redux'
 import { useYearSelector, useYearDispatch } from 'ustaxes/redux/yearDispatch'
 import { FormProvider, useForm } from 'react-hook-form'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import {
   HealthSavingsAccount,
   Person,
@@ -30,6 +30,7 @@ import { YearsTaxesState } from 'ustaxes/redux'
 
 import { format } from 'date-fns'
 import { intentionallyFloat } from 'ustaxes/core/util'
+import { isHSAValid } from 'ustaxes/forms/validation'
 
 interface HSAUserInput {
   label: string
@@ -99,7 +100,7 @@ export default function HealthSavingsAccounts(): ReactElement {
     (state: YearsTaxesState) => state.activeYear
   )
 
-  const { navButtons, onAdvance } = usePager()
+  const { navButtons, onAdvance, completionModal } = usePagerWithCompletion()
 
   const onSubmitAdd = (formData: HSAUserInput): void => {
     dispatch(addHSA(toHSA(formData)))
@@ -120,6 +121,7 @@ export default function HealthSavingsAccounts(): ReactElement {
       removeItem={(i) => dispatch(removeHSA(i))}
       icon={() => <Work />}
       primary={(hsa: HSAUserInput) => hsa.label}
+      isItemValid={isHSAValid}
       secondary={(hsa: HSAUserInput) => (
         <span>
           contributions: <Currency value={toHSA(hsa).contributions} />
@@ -214,6 +216,7 @@ export default function HealthSavingsAccounts(): ReactElement {
         {form}
         {navButtons}
       </form>
+      {completionModal}
     </FormProvider>
   )
 }

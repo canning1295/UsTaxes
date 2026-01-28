@@ -2,7 +2,7 @@ import { ReactElement } from 'react'
 import { Helmet } from 'react-helmet'
 import { useYearSelector, useYearDispatch } from 'ustaxes/redux/yearDispatch'
 import { FormProvider, useForm } from 'react-hook-form'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import {
   Ira,
   IraPlanType,
@@ -26,6 +26,7 @@ import { Work } from '@material-ui/icons'
 import { TaxesState } from 'ustaxes/redux'
 import { addIRA, editIRA, removeIRA } from 'ustaxes/redux/actions'
 import { intentionallyFloat } from 'ustaxes/core/util'
+import { isIRAValid } from 'ustaxes/forms/validation'
 
 interface IraUserInput {
   payer: string
@@ -124,7 +125,7 @@ export default function IRA(): ReactElement {
   const methods = useForm<IraUserInput>({ defaultValues })
   const { handleSubmit } = methods
 
-  const { navButtons, onAdvance } = usePager()
+  const { navButtons, onAdvance, completionModal } = usePagerWithCompletion()
 
   const onSubmitAdd = (formData: IraUserInput): void => {
     dispatch(addIRA(toIra(formData)))
@@ -145,6 +146,7 @@ export default function IRA(): ReactElement {
       removeItem={(i) => dispatch(removeIRA(i))}
       icon={() => <Work />}
       primary={(ira: IraUserInput) => ira.payer}
+      isItemValid={isIRAValid}
       secondary={(ira: IraUserInput) => (
         <span>
           {IraPlanTypeTexts[ira.planType]}
@@ -301,6 +303,7 @@ export default function IRA(): ReactElement {
         {form}
         {navButtons}
       </form>
+      {completionModal}
     </FormProvider>
   )
 }

@@ -8,8 +8,8 @@ import {
   Typography,
   Tooltip
 } from '@material-ui/core'
-import { CheckCircle, RadioButtonUnchecked } from '@material-ui/icons'
-import { useProgress, SectionProgress } from 'ustaxes/hooks'
+import { CheckCircle, RadioButtonUnchecked, Remove } from '@material-ui/icons'
+import { useProgress, SectionStatus } from 'ustaxes/hooks'
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -39,30 +39,20 @@ const useStyles = makeStyles((theme: Theme) =>
       fontWeight: 'bold',
       color: theme.palette.success.main
     },
-    sectionIndicator: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      marginRight: theme.spacing(1)
+    // Not started: dark grey dash
+    notStartedIcon: {
+      color: theme.palette.grey[500],
+      fontSize: '1rem'
     },
+    // In progress: lighter green circle
+    inProgressIcon: {
+      color: theme.palette.success.light,
+      fontSize: '1rem'
+    },
+    // Complete: theme green checkmark (same as Tax Year button)
     completedIcon: {
       color: theme.palette.success.main,
       fontSize: '1rem'
-    },
-    incompleteIcon: {
-      color: theme.palette.grey[400],
-      fontSize: '1rem'
-    },
-    itemBadge: {
-      backgroundColor: theme.palette.success.main,
-      color: theme.palette.common.white,
-      borderRadius: '50%',
-      minWidth: 18,
-      height: 18,
-      fontSize: '0.7rem',
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginLeft: theme.spacing(0.5)
     }
   })
 )
@@ -81,11 +71,11 @@ export const OverallProgressBar = (): ReactElement => {
           Tax Form Progress
         </Typography>
         <Typography variant="body2" className={classes.percentage}>
-          {Math.round(progress.overallPercentage)}%
+          {progress.overallPercentage}%
         </Typography>
       </Box>
       <Tooltip
-        title={`${progress.completedRequired}/${progress.totalRequired} required sections complete, ${progress.completedOptional} optional sections filled`}
+        title={`${progress.completedCount}/${progress.totalCount} sections complete`}
       >
         <LinearProgress
           variant="determinate"
@@ -106,7 +96,30 @@ interface SectionStatusIconProps {
 }
 
 /**
- * Small icon to show completion status of a menu item
+ * Get the appropriate tooltip text based on section status
+ */
+const getStatusTooltip = (
+  status: SectionStatus,
+  itemCount?: number
+): string => {
+  switch (status) {
+    case 'complete':
+      return itemCount !== undefined
+        ? `Complete (${itemCount} item${itemCount !== 1 ? 's' : ''})`
+        : 'Complete'
+    case 'in-progress':
+      return 'In progress - incomplete data'
+    case 'not-started':
+    default:
+      return 'Not started'
+  }
+}
+
+/**
+ * Icon to show completion status of a menu item
+ * - Not started: dark grey dash (—)
+ * - In progress: lighter green circle (○)
+ * - Complete: theme green checkmark (✓)
  */
 export const SectionStatusIcon = ({
   sectionId
@@ -117,51 +130,31 @@ export const SectionStatusIcon = ({
   const section = progress.sections.find((s) => s.id === sectionId)
   if (!section) return null
 
-  if (section.completed) {
-    return (
-      <Tooltip title={`${section.itemCount ?? 1} item(s) added`}>
-        <span className={classes.sectionIndicator}>
+  const tooltip = getStatusTooltip(section.status, section.itemCount)
+
+  switch (section.status) {
+    case 'complete':
+      return (
+        <Tooltip title={tooltip}>
           <CheckCircle className={classes.completedIcon} />
-          {section.itemCount !== undefined && section.itemCount > 0 && (
-            <span className={classes.itemBadge}>{section.itemCount}</span>
-          )}
-        </span>
-      </Tooltip>
-    )
+        </Tooltip>
+      )
+
+    case 'in-progress':
+      return (
+        <Tooltip title={tooltip}>
+          <RadioButtonUnchecked className={classes.inProgressIcon} />
+        </Tooltip>
+      )
+
+    case 'not-started':
+    default:
+      return (
+        <Tooltip title={tooltip}>
+          <Remove className={classes.notStartedIcon} />
+        </Tooltip>
+      )
   }
-
-  if (section.required) {
-    return (
-      <Tooltip title="Required - not yet completed">
-        <RadioButtonUnchecked className={classes.incompleteIcon} />
-      </Tooltip>
-    )
-  }
-
-  return null
-}
-
-interface ItemCountBadgeProps {
-  section: SectionProgress
-}
-
-/**
- * Badge showing the number of items in a section
- */
-export const ItemCountBadge = ({
-  section
-}: ItemCountBadgeProps): ReactElement | null => {
-  const classes = useStyles()
-
-  if (!section.completed || section.itemCount === undefined) {
-    return null
-  }
-
-  return (
-    <Tooltip title={`${section.itemCount} item(s)`}>
-      <span className={classes.itemBadge}>{section.itemCount}</span>
-    </Tooltip>
-  )
 }
 
 export default OverallProgressBar

@@ -534,6 +534,7 @@ export const SecurityGate = ({
                   component="button"
                   variant="body2"
                   onClick={() => setShowRecovery(true)}
+                  className={classes.successLink}
                 >
                   Forgot password? Use security questions
                 </Link>
@@ -544,7 +545,7 @@ export const SecurityGate = ({
               <Box mt={2} textAlign="center">
                 <Button
                   variant="outlined"
-                  color="primary"
+                  className={classes.successButton}
                   startIcon={<Fingerprint />}
                   onClick={() => void handleBiometricAuth()}
                   disabled={loading}

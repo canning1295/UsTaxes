@@ -25,7 +25,8 @@ import { fsReducer } from './fs/FSReducer'
 import {
   migrateEachYear,
   migrateAgeAndBlindness,
-  migrateAddAppSettings
+  migrateAddAppSettings,
+  migrateAddCompletedSections
 } from './migration'
 
 type SerializedState = { [K in TaxYear]: Information } & {
@@ -121,12 +122,15 @@ const dateStringTransform = createTransform(
 // really say anything about the type of the incoming data.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 const migrations = {
   0: (state: any) => migrateEachYear(state),
   1: (state: any) => migrateAgeAndBlindness(state),
-  2: (state: any) => migrateAddAppSettings(state)
+  2: (state: any) => migrateAddAppSettings(state),
+  3: (state: any) => migrateAddCompletedSections(state)
 }
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-enable @typescript-eslint/no-unsafe-call */
+/* eslint-enable @typescript-eslint/no-unsafe-return */
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 const persistedReducer = fsReducer(
@@ -139,7 +143,7 @@ const persistedReducer = fsReducer(
       // number will be compared and all migrations between
       // the persisted version and the version here will be
       // applied in order
-      version: 2,
+      version: 3,
       storage,
       migrate: createMigrate(migrations, { debug: false }),
       transforms: [dateStringTransform]

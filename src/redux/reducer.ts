@@ -6,7 +6,8 @@ import {
   AppSettings,
   defaultAppSettings,
   blankState,
-  stringToDateInfo
+  stringToDateInfo,
+  SectionId
 } from './data'
 import { ActionName, Actions } from './actions'
 import { securityReducer } from './security/reducer'
@@ -469,18 +470,134 @@ const assetReducer = (
   }
 }
 
+/**
+ * Map action types to the section IDs they affect.
+ * When these actions are dispatched, the corresponding section
+ * should be unmarked from completedSections.
+ */
+const actionToSectionId: Partial<Record<ActionName, SectionId>> = {
+  // Primary Taxpayer section
+  [ActionName.SAVE_PRIMARY_PERSON_INFO]: 'primary-taxpayer',
+  [ActionName.SAVE_CONTACT_INFO]: 'primary-taxpayer',
+
+  // Spouse and Dependents section
+  [ActionName.SAVE_FILING_STATUS_INFO]: 'spouse-dependents',
+  [ActionName.ADD_SPOUSE]: 'spouse-dependents',
+  [ActionName.REMOVE_SPOUSE]: 'spouse-dependents',
+  [ActionName.ADD_DEPENDENT]: 'spouse-dependents',
+  [ActionName.EDIT_DEPENDENT]: 'spouse-dependents',
+  [ActionName.REMOVE_DEPENDENT]: 'spouse-dependents',
+
+  // W2s section
+  [ActionName.ADD_W2]: 'w2s',
+  [ActionName.EDIT_W2]: 'w2s',
+  [ActionName.REMOVE_W2]: 'w2s',
+
+  // 1099s section
+  [ActionName.ADD_1099]: 'f1099s',
+  [ActionName.EDIT_1099]: 'f1099s',
+  [ActionName.REMOVE_1099]: 'f1099s',
+
+  // Real Estate section
+  [ActionName.ADD_PROPERTY]: 'real-estate',
+  [ActionName.EDIT_PROPERTY]: 'real-estate',
+  [ActionName.REMOVE_PROPERTY]: 'real-estate',
+
+  // Other Investments section (assets)
+  [ActionName.ADD_ASSET]: 'other-investments',
+  [ActionName.EDIT_ASSET]: 'other-investments',
+  [ActionName.REMOVE_ASSET]: 'other-investments',
+  [ActionName.ADD_ASSETS]: 'other-investments',
+  [ActionName.REMOVE_ASSETS]: 'other-investments',
+
+  // Stock Options section
+  [ActionName.ADD_F3921]: 'stock-options',
+  [ActionName.EDIT_F3921]: 'stock-options',
+  [ActionName.REMOVE_F3921]: 'stock-options',
+
+  // Partnership Income section
+  [ActionName.ADD_SCHEDULE_K1_F1065]: 'partnership-income',
+  [ActionName.EDIT_SCHEDULE_K1_F1065]: 'partnership-income',
+  [ActionName.REMOVE_SCHEDULE_K1_F1065]: 'partnership-income',
+
+  // Estimated Taxes section
+  [ActionName.ADD_ESTIMATED_TAX]: 'estimated-taxes',
+  [ActionName.EDIT_ESTIMATED_TAX]: 'estimated-taxes',
+  [ActionName.REMOVE_ESTIMATED_TAX]: 'estimated-taxes',
+
+  // Student Loans section
+  [ActionName.ADD_1098e]: 'student-loans',
+  [ActionName.EDIT_1098e]: 'student-loans',
+  [ActionName.REMOVE_1098e]: 'student-loans',
+
+  // Itemized Deductions section
+  [ActionName.SET_ITEMIZED_DEDUCTIONS]: 'itemized-deductions',
+
+  // HSA section
+  [ActionName.ADD_HSA]: 'hsa',
+  [ActionName.EDIT_HSA]: 'hsa',
+  [ActionName.REMOVE_HSA]: 'hsa',
+
+  // IRA section
+  [ActionName.ADD_IRA]: 'ira',
+  [ActionName.EDIT_IRA]: 'ira',
+  [ActionName.REMOVE_IRA]: 'ira',
+
+  // Questions section
+  [ActionName.ANSWER_QUESTION]: 'questions',
+
+  // Refund section
+  [ActionName.SAVE_REFUND_INFO]: 'refund'
+}
+
 const appSettingsReducer = (
   state: AppSettings = defaultAppSettings,
   action: Actions
 ): AppSettings => {
+  // Ensure completedSections is always an array (handles persisted state migration)
+  let completedSections = state.completedSections ?? []
+
+  // Auto-unmark section when data changes
+  const affectedSection = actionToSectionId[action.type as ActionName]
+  if (affectedSection && completedSections.includes(affectedSection)) {
+    completedSections = completedSections.filter((s) => s !== affectedSection)
+  }
+
   switch (action.type) {
     case ActionName.TOGGLE_AUTO_SAVE: {
       return {
         ...state,
+        completedSections,
         autoSaveEnabled: action.formData
       }
     }
+    case ActionName.MARK_SECTION_COMPLETE: {
+      const sectionId = action.formData
+      if (completedSections.includes(sectionId)) {
+        return state
+      }
+      return {
+        ...state,
+        completedSections: [...completedSections, sectionId]
+      }
+    }
+    case ActionName.UNMARK_SECTION_COMPLETE: {
+      const sectionId = action.formData
+      return {
+        ...state,
+        completedSections: completedSections.filter((s) => s !== sectionId)
+      }
+    }
     default: {
+      // Only return a new object if completedSections actually changed
+      // (e.g., from auto-unmark when data changes). Otherwise, return
+      // the original state to preserve redux-persist rehydration.
+      if (completedSections !== state.completedSections) {
+        return {
+          ...state,
+          completedSections
+        }
+      }
       return state
     }
   }

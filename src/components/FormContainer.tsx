@@ -23,7 +23,9 @@ import {
   Edit,
   EditOutlined,
   RestoreOutlined,
-  DeleteOutline
+  DeleteOutline,
+  Warning,
+  CheckCircleOutline
 } from '@material-ui/icons'
 import {
   DefaultValues,
@@ -93,6 +95,7 @@ interface MutableListItemProps {
   editing?: boolean
   icon?: ReactElement
   disableEdit?: boolean
+  isValid?: boolean
 }
 
 export const MutableListItem = ({
@@ -102,7 +105,8 @@ export const MutableListItem = ({
   remove,
   onEdit,
   editing = false,
-  disableEdit = false
+  disableEdit = false,
+  isValid
 }: MutableListItemProps): ReactElement => {
   const canEdit = !editing && !disableEdit && onEdit !== undefined
   const canDelete = remove !== undefined && !editing
@@ -135,9 +139,27 @@ export const MutableListItem = ({
   // Show "editing..." status text when item is being edited
   const status = editing ? <em>editing...</em> : undefined
 
+  // Validation status icon (! for invalid, ✓ for valid)
+  const validationIcon = (() => {
+    if (isValid === undefined) return null
+    if (isValid) {
+      return (
+        <ListItemIcon style={{ minWidth: 32 }}>
+          <CheckCircleOutline style={{ color: '#4caf50', fontSize: 18 }} />
+        </ListItemIcon>
+      )
+    }
+    return (
+      <ListItemIcon style={{ minWidth: 32 }}>
+        <Warning style={{ color: '#f44336', fontSize: 18 }} />
+      </ListItemIcon>
+    )
+  })()
+
   // Wrap in a Box for highlighting when editing (top/bottom border only)
   const content = (
     <ListItem>
+      {validationIcon}
       <ListItemIcon>{icon}</ListItemIcon>
       <ListItemText
         primary={<strong>{primary}</strong>}
@@ -185,6 +207,7 @@ interface FormListContainerProps<A extends FieldValues> {
   icon?: (a: A) => ReactElement
   grouping?: (a: A) => number
   groupHeaders?: (ReactNode | undefined)[]
+  isItemValid?: (a: A) => boolean
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -320,7 +343,8 @@ const FormListContainer = <A extends FieldValues>(
       // default do nothing
     },
     grouping = () => 0,
-    groupHeaders = []
+    groupHeaders = [],
+    isItemValid
   } = props
   const [isOpen, setOpen] = useState(false)
   const [editing, setEditing] = useState<number | undefined>(undefined)
@@ -511,6 +535,9 @@ const FormListContainer = <A extends FieldValues>(
                       : undefined
                   }
                   icon={icon !== undefined ? icon(item) : undefined}
+                  isValid={
+                    isItemValid !== undefined ? isItemValid(item) : undefined
+                  }
                 />
               ))}
             </div>

@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { useDispatch, useSelector, TaxesState } from 'ustaxes/redux'
 import { Helmet } from 'react-helmet'
 import { FormProvider, useForm, useFormContext } from 'react-hook-form'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import {
   IncomeW2,
   Person,
@@ -32,7 +32,12 @@ import { Grid, Box, Button, Paper } from '@material-ui/core'
 import { Work } from '@material-ui/icons'
 import { addW2, editW2, removeW2 } from 'ustaxes/redux/actions'
 import { Alert } from '@material-ui/lab'
-import { enumKeys, parseFormNumber } from 'ustaxes/core/util'
+import {
+  enumKeys,
+  intentionallyFloat,
+  parseFormNumber
+} from 'ustaxes/core/util'
+import { isW2Valid } from 'ustaxes/forms/validation'
 
 interface IncomeW2UserInput {
   employer?: Employer
@@ -164,8 +169,9 @@ export default function W2JobInfo(): ReactElement {
   const methods = useForm<IncomeW2UserInput>({
     defaultValues
   })
+  const { handleSubmit } = methods
 
-  const { navButtons, onAdvance } = usePager()
+  const { navButtons, onAdvance, completionModal } = usePagerWithCompletion()
 
   const information: Information = useSelector(
     (state: TaxesState) => state.information
@@ -216,6 +222,7 @@ export default function W2JobInfo(): ReactElement {
       groupHeaders={[primary?.firstName, spouse?.firstName].map((x, i) =>
         x !== undefined ? <h2 key={i}>{x}&apos; W2s</h2> : undefined
       )}
+      isItemValid={isW2Valid}
     >
       <p>Input data from W-2</p>
       <Grid container spacing={2}>
@@ -338,7 +345,10 @@ export default function W2JobInfo(): ReactElement {
 
   return (
     <FormProvider {...methods}>
-      <form tabIndex={-1} onSubmit={onAdvance}>
+      <form
+        tabIndex={-1}
+        onSubmit={intentionallyFloat(handleSubmit(onAdvance))}
+      >
         <Helmet>
           <title>Job Information | Income | UsTaxes.org</title>
         </Helmet>
@@ -346,6 +356,7 @@ export default function W2JobInfo(): ReactElement {
         {form}
         {navButtons}
       </form>
+      {completionModal}
     </FormProvider>
   )
 }

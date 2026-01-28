@@ -11,6 +11,7 @@ import { Patterns } from 'ustaxes/components/Patterns'
 import { FormListContainer } from 'ustaxes/components/FormContainer'
 import { Grid } from '@material-ui/core'
 import { intentionallyFloat } from 'ustaxes/core/util'
+import { isF1098eValid } from 'ustaxes/forms/validation'
 
 const showInterest = (a: F1098e): ReactElement => {
   return <Currency value={a.interest} />
@@ -71,6 +72,7 @@ export default function F1098eInfo(): ReactElement {
       primary={(f) => f.lender}
       secondary={(f) => showInterest(toF1098e(f))}
       icon={() => <SchoolIcon />}
+      isItemValid={isF1098eValid}
     >
       <p>Input data from 1098-E</p>
       <Grid container spacing={2}>

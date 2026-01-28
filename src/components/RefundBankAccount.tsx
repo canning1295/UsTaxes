@@ -9,7 +9,7 @@ import _ from 'lodash'
 import { useAutoSave } from 'ustaxes/hooks'
 
 import { Refund, AccountType } from 'ustaxes/core/data'
-import { usePager } from './pager'
+import { usePagerWithCompletion } from './usePagerWithCompletion'
 import { Grid } from '@material-ui/core'
 import { intentionallyFloat } from 'ustaxes/core/util'
 
@@ -30,7 +30,7 @@ export default function RefundBankAccount(): ReactElement {
     ...refund
   }
 
-  const { navButtons, onAdvance } = usePager()
+  const { navButtons, onAdvance, completionModal } = usePagerWithCompletion()
 
   const methods = useForm<Refund>({ defaultValues })
   const {
@@ -92,35 +92,38 @@ export default function RefundBankAccount(): ReactElement {
   }
 
   return (
-    <form tabIndex={-1} onSubmit={intentionallyFloat(handleSubmit(onSubmit))}>
-      <FormProvider {...methods}>
-        <Helmet>
-          <title>Refund Information | Results | UsTaxes.org</title>
-        </Helmet>
-        <h2>Refund Information</h2>
-        <Grid container spacing={2}>
-          <LabeledInput
-            label="Bank Routing number"
-            patternConfig={Patterns.bankRouting}
-            name="routingNumber"
-          />
+    <>
+      <form tabIndex={-1} onSubmit={intentionallyFloat(handleSubmit(onSubmit))}>
+        <FormProvider {...methods}>
+          <Helmet>
+            <title>Refund Information | Results | UsTaxes.org</title>
+          </Helmet>
+          <h2>Refund Information</h2>
+          <Grid container spacing={2}>
+            <LabeledInput
+              label="Bank Routing number"
+              patternConfig={Patterns.bankRouting}
+              name="routingNumber"
+            />
 
-          <LabeledInput
-            label="Bank Account number"
-            patternConfig={Patterns.bankAccount}
-            name="accountNumber"
-          />
-          <LabeledRadio<Refund>
-            label="Account Type"
-            name="accountType"
-            values={[
-              ['Checking', 'checking'],
-              ['Savings', 'savings']
-            ]}
-          />
-        </Grid>
-        {navButtons}
-      </FormProvider>
-    </form>
+            <LabeledInput
+              label="Bank Account number"
+              patternConfig={Patterns.bankAccount}
+              name="accountNumber"
+            />
+            <LabeledRadio<Refund>
+              label="Account Type"
+              name="accountType"
+              values={[
+                ['Checking', 'checking'],
+                ['Savings', 'savings']
+              ]}
+            />
+          </Grid>
+          {navButtons}
+        </FormProvider>
+      </form>
+      {completionModal}
+    </>
   )
 }

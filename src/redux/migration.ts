@@ -124,15 +124,45 @@ export const migrateEachYear = <S extends USTState>(state: S): S =>
  * Migration to add appSettings field for auto-save and other app preferences
  */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 export const migrateAddAppSettings = (state: any): any => {
   if (!state.appSettings) {
     return {
       ...state,
       appSettings: {
-        autoSaveEnabled: false
+        autoSaveEnabled: false,
+        completedSections: []
+      }
+    }
+  }
+  // Ensure completedSections exists on existing appSettings
+  if (!state.appSettings.completedSections) {
+    return {
+      ...state,
+      appSettings: {
+        ...state.appSettings,
+        completedSections: []
       }
     }
   }
   return state
 }
+
+/**
+ * Migration to ensure completedSections exists in appSettings
+ * For users who have appSettings but are missing completedSections
+ */
+export const migrateAddCompletedSections = (state: any): any => {
+  if (state.appSettings && !state.appSettings.completedSections) {
+    return {
+      ...state,
+      appSettings: {
+        ...state.appSettings,
+        completedSections: []
+      }
+    }
+  }
+  return state
+}
+/* eslint-enable @typescript-eslint/no-unsafe-assignment */
 /* eslint-enable @typescript-eslint/no-unsafe-member-access */

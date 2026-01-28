@@ -29,14 +29,36 @@ export const blankState: Information = {
 }
 
 /**
+ * Section IDs that can be marked as complete
+ */
+export type SectionId =
+  | 'primary-taxpayer'
+  | 'spouse-dependents'
+  | 'w2s'
+  | 'f1099s'
+  | 'real-estate'
+  | 'other-investments'
+  | 'stock-options'
+  | 'partnership-income'
+  | 'estimated-taxes'
+  | 'student-loans'
+  | 'itemized-deductions'
+  | 'hsa'
+  | 'ira'
+  | 'questions'
+  | 'refund'
+
+/**
  * App-wide settings (non-security related)
  */
 export interface AppSettings {
   autoSaveEnabled: boolean
+  completedSections: SectionId[]
 }
 
 export const defaultAppSettings: AppSettings = {
-  autoSaveEnabled: false
+  autoSaveEnabled: false,
+  completedSections: []
 }
 
 export type YearsTaxesState<D = Date> = { [K in TaxYear]: Information<D> } & {
