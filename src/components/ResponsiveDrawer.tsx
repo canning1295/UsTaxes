@@ -46,15 +46,15 @@ const useStyles = makeStyles<Theme, { isMobile: boolean }>((theme) =>
     listSocial: {
       display: 'flex',
       flexDirection: 'row',
-      flexWrap: 'nowrap',
+      flexWrap: 'wrap',
       justifyContent: 'center',
       alignItems: 'center',
       padding: theme.spacing(1),
       gap: theme.spacing(0.5)
     },
     listItemSocial: {
-      width: 'auto',
-      padding: 0
+      flex: '0 0 auto',
+      padding: theme.spacing(0.5)
     },
     list: {
       marginLeft: theme.spacing(0),
