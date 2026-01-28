@@ -6,7 +6,9 @@ import {
   TaxPayer,
   Refund,
   Responses,
-  Asset
+  Asset,
+  TaxYear,
+  TaxYears
 } from 'ustaxes/core/data'
 import {
   isW2Valid,
@@ -123,12 +125,30 @@ const getArraySectionStatus = <T>(
 }
 
 /**
+ * Filter assets relevant to a specific tax year
+ * An asset is relevant if it was sold during that year (closeDate in that year)
+ */
+const filterAssetsForYear = (
+  assets: Asset<Date>[],
+  year: TaxYear
+): Asset<Date>[] => {
+  const yearNum = TaxYears[year]
+  return assets.filter(
+    (a) => a.closeDate !== undefined && a.closeDate.getFullYear() === yearNum
+  )
+}
+
+/**
  * Calculate progress for all sections
  */
 export const calculateProgress = (
   info: Information,
-  assets: Asset<Date>[] = []
+  assets: Asset<Date>[] = [],
+  activeYear: TaxYear = 'Y2025'
 ): ProgressSummary => {
+  // Filter assets to only those sold in the active year
+  const yearAssets = filterAssetsForYear(assets, activeYear)
+
   const sections: SectionProgress[] = [
     // Personal section
     {
@@ -173,8 +193,8 @@ export const calculateProgress = (
     {
       id: 'other-investments',
       label: 'Other Investments',
-      status: getArraySectionStatus(assets, isAssetValid),
-      itemCount: assets.length
+      status: getArraySectionStatus(yearAssets, isAssetValid),
+      itemCount: yearAssets.length
     },
     {
       id: 'stock-options',
@@ -271,7 +291,7 @@ export function useProgress(): ProgressSummary {
   )
 
   return useMemo(() => {
-    const progress = calculateProgress(information, assets)
+    const progress = calculateProgress(information, assets, activeYear)
 
     // A section is only shown as "complete" if:
     // 1. User has explicitly marked it complete via the completion modal
@@ -323,7 +343,7 @@ export function useProgress(): ProgressSummary {
           ? Math.round((completedCount / progress.totalCount) * 100)
           : 0
     }
-  }, [information, assets, completedSections])
+  }, [information, assets, activeYear, completedSections])
 }
 
 /**
@@ -336,8 +356,8 @@ export function useRawProgress(): ProgressSummary {
   const assets = useSelector((state: YearsTaxesState) => state.assets)
 
   return useMemo(
-    () => calculateProgress(information, assets),
-    [information, assets]
+    () => calculateProgress(information, assets, activeYear),
+    [information, assets, activeYear]
   )
 }
 
