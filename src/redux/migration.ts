@@ -153,37 +153,47 @@ export const migrateAddAppSettings = (state: any): any => {
  * This handles the per-year tracking of completed sections
  */
 export const migrateCompletedSectionsToPerYear = (state: any): any => {
-  if (state.appSettings) {
-    const oldCompletedSections = state.appSettings.completedSections
-    const hasOldFormat =
-      Array.isArray(oldCompletedSections) && oldCompletedSections.length > 0
-    const hasNewFormat = state.appSettings.completedSectionsByYear !== undefined
-
-    // If we have old format data, migrate it to the active year
-    if (hasOldFormat && !hasNewFormat) {
-      const activeYear = state.activeYear || 'Y2025'
-      return {
-        ...state,
-        appSettings: {
-          autoSaveEnabled: state.appSettings.autoSaveEnabled ?? false,
-          completedSectionsByYear: {
-            [activeYear]: oldCompletedSections
-          }
-        }
+  // Handle case where appSettings doesn't exist at all
+  if (!state.appSettings) {
+    return {
+      ...state,
+      appSettings: {
+        autoSaveEnabled: false,
+        completedSectionsByYear: {}
       }
     }
+  }
 
-    // Ensure completedSectionsByYear exists
-    if (!hasNewFormat) {
-      return {
-        ...state,
-        appSettings: {
-          autoSaveEnabled: state.appSettings.autoSaveEnabled ?? false,
-          completedSectionsByYear: {}
+  const oldCompletedSections = state.appSettings.completedSections
+  const hasOldFormat =
+    Array.isArray(oldCompletedSections) && oldCompletedSections.length > 0
+  const hasNewFormat = state.appSettings.completedSectionsByYear !== undefined
+
+  // If we have old format data, migrate it to the active year
+  if (hasOldFormat && !hasNewFormat) {
+    const activeYear = state.activeYear || 'Y2025'
+    return {
+      ...state,
+      appSettings: {
+        autoSaveEnabled: state.appSettings.autoSaveEnabled ?? false,
+        completedSectionsByYear: {
+          [activeYear]: oldCompletedSections
         }
       }
     }
   }
+
+  // Ensure completedSectionsByYear exists
+  if (!hasNewFormat) {
+    return {
+      ...state,
+      appSettings: {
+        autoSaveEnabled: state.appSettings.autoSaveEnabled ?? false,
+        completedSectionsByYear: {}
+      }
+    }
+  }
+
   return state
 }
 /* eslint-enable @typescript-eslint/no-unsafe-assignment */
