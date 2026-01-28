@@ -67,3 +67,5 @@ real-test-data.*
 .env.personal
 
 .amp
+server.log
+server.pid
