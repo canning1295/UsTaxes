@@ -10,6 +10,7 @@ import {
   TaxYear,
   TaxYears
 } from 'ustaxes/core/data'
+import { getRequiredQuestions } from 'ustaxes/core/data/questions'
 import {
   isW2Valid,
   isF1099Valid,
@@ -21,6 +22,7 @@ import {
   isHSAValid,
   isIRAValid,
   isDependentValid,
+  isSpouseValid,
   isAssetValid
 } from 'ustaxes/forms/validation'
 
@@ -85,24 +87,32 @@ const getRefundStatus = (refund: Refund | undefined): SectionStatus => {
  * Get status for informational questions
  * Questions are complete if all boolean questions have been answered (are not undefined)
  */
-const getQuestionsStatus = (
-  questions: Responses | undefined
-): SectionStatus => {
-  if (!questions) return 'not-started'
+const getQuestionsStatus = (info: Information): SectionStatus => {
+  const requiredQuestions = getRequiredQuestions(info)
 
-  // Check if any questions have been answered (not undefined)
-  const booleanQuestions = [
-    questions.CRYPTO,
-    questions.FOREIGN_ACCOUNT_EXISTS,
-    questions.FINCEN_114,
-    questions.FOREIGN_TRUST_RELATIONSHIP,
-    questions.LIVE_APART_FROM_SPOUSE
-  ]
+  if (requiredQuestions.length === 0) {
+    return 'complete'
+  }
 
-  const answeredCount = booleanQuestions.filter((q) => q !== undefined).length
+  const answers: Responses = info.questions ?? {}
+
+  const isAnswered = (tag: string, valueTag: string): boolean => {
+    const value = (answers as Record<string, unknown>)[tag]
+    if (valueTag === 'boolean') {
+      return value !== undefined
+    }
+    if (valueTag === 'string') {
+      return typeof value === 'string' && value.trim().length > 0
+    }
+    return value !== undefined
+  }
+
+  const answeredCount = requiredQuestions.filter((q) =>
+    isAnswered(q.tag, q.valueTag)
+  ).length
 
   if (answeredCount === 0) return 'not-started'
-  if (answeredCount === booleanQuestions.length) return 'complete'
+  if (answeredCount === requiredQuestions.length) return 'complete'
   return 'in-progress'
 }
 
@@ -161,12 +171,13 @@ export const calculateProgress = (
       label: 'Spouse and Dependents',
       status: (() => {
         const deps = info.taxPayer.dependents
-        const hasSpouse = !!info.taxPayer.spouse
+        const spouse = info.taxPayer.spouse
+        const hasSpouse = !!spouse
         if (deps.length === 0 && !hasSpouse) return 'not-started'
         // Check if all dependents are valid
         const allDepsValid = deps.every((d) => isDependentValid(d))
-        // Spouse is valid if it exists (validated on entry)
-        return allDepsValid ? 'complete' : 'in-progress'
+        const spouseValid = spouse ? isSpouseValid(spouse) : true
+        return allDepsValid && spouseValid ? 'complete' : 'in-progress'
       })(),
       itemCount:
         info.taxPayer.dependents.length + (info.taxPayer.spouse ? 1 : 0)
@@ -250,7 +261,7 @@ export const calculateProgress = (
     {
       id: 'questions',
       label: 'Informational Questions',
-      status: getQuestionsStatus(info.questions)
+      status: getQuestionsStatus(info)
     },
     // Results section
     {

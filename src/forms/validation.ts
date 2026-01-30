@@ -46,6 +46,23 @@ export const isDependentValid = (dep: DependentUserInput): boolean => {
   )
 }
 
+// Spouse validation
+export interface SpouseUserInput {
+  firstName?: string
+  lastName?: string
+  ssid?: string
+  dateOfBirth?: Date | string
+}
+
+export const isSpouseValid = (spouse: SpouseUserInput): boolean => {
+  return !!(
+    spouse.firstName &&
+    spouse.lastName &&
+    spouse.ssid &&
+    spouse.dateOfBirth
+  )
+}
+
 // F1098e (Student Loan Interest) validation
 export interface F1098eUserInput {
   lender?: string
@@ -56,7 +73,8 @@ export const isF1098eValid = (f1098e: F1098eUserInput): boolean => {
   return !!(
     f1098e.lender &&
     f1098e.interest !== undefined &&
-    f1098e.interest !== ''
+    f1098e.interest !== '' &&
+    Number(f1098e.interest) > 0
   )
 }
 
@@ -67,7 +85,12 @@ export interface EstimatedTaxUserInput {
 }
 
 export const isEstimatedTaxValid = (et: EstimatedTaxUserInput): boolean => {
-  return !!(et.label && et.payment !== undefined && et.payment !== '')
+  return !!(
+    et.label &&
+    et.payment !== undefined &&
+    et.payment !== '' &&
+    Number(et.payment) > 0
+  )
 }
 
 // HSA validation
@@ -147,10 +170,12 @@ export interface F1099UserInput {
   formType?: string
   payer?: string
   personRole?: string
+  type?: string
 }
 
 export const isF1099Valid = (f1099: F1099UserInput): boolean => {
-  return !!(f1099.formType && f1099.payer && f1099.personRole)
+  const formType = f1099.formType ?? f1099.type
+  return !!(formType && f1099.payer && f1099.personRole)
 }
 
 // Asset (Other Investments) validation
@@ -168,6 +193,10 @@ export const isAssetValid = (asset: AssetUserInput): boolean => {
     asset.positionType &&
     asset.openDate &&
     asset.openPrice !== undefined &&
-    asset.quantity !== undefined
+    asset.openPrice !== '' &&
+    Number(asset.openPrice) > 0 &&
+    asset.quantity !== undefined &&
+    asset.quantity !== '' &&
+    Number(asset.quantity) > 0
   )
 }
