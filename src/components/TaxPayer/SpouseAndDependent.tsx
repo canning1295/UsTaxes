@@ -30,6 +30,7 @@ import { PersonFields } from './PersonFields'
 import { FormListContainer } from 'ustaxes/components/FormContainer'
 import { usePager } from 'ustaxes/components/pager'
 import { Box, Grid } from '@material-ui/core'
+import { isSpouseValid } from 'ustaxes/forms/validation'
 import { Person } from '@material-ui/icons'
 import { Alert } from '@material-ui/lab'
 import { intentionallyFloat } from 'ustaxes/core/util'
@@ -204,6 +205,7 @@ export const SpouseInfo = (): ReactElement => {
       icon={() => <Person />}
       onSubmitAdd={onSubmit}
       onSubmitEdit={onSubmitEdit}
+      isItemValid={isSpouseValid}
       max={1}
       removeItem={() => dispatch(removeSpouse)}
     >

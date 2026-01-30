@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet'
 import { FormProvider, useForm } from 'react-hook-form'
 import { useDispatch, useSelector, TaxesState } from 'ustaxes/redux'
 import { setItemizedDeductions } from 'ustaxes/redux/actions'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import { LabeledInput, LabeledCheckbox } from 'ustaxes/components/input'
 import { ItemizedDeductions } from 'ustaxes/core/data'
 import { Patterns } from 'ustaxes/components/Patterns'
@@ -25,6 +25,12 @@ interface ItemizedDeductionUserInput {
   investmentInterest: string | number
   charityCashCheck: string | number
   charityOther: string | number
+}
+
+interface PagerWithCompletion {
+  navButtons: ReactElement | undefined
+  onAdvance: () => void
+  completionModal: ReactElement
 }
 
 const blankUserInput: ItemizedDeductionUserInput = {
@@ -89,7 +95,10 @@ export const ItemizedDeductionsInfo = (): ReactElement => {
     ...(itemizedDeductions !== undefined ? toUserInput(itemizedDeductions) : {})
   }
 
-  const { onAdvance, navButtons } = usePager()
+  const usePagerWithCompletionTyped =
+    usePagerWithCompletion as () => PagerWithCompletion
+  const { onAdvance, navButtons, completionModal } =
+    usePagerWithCompletionTyped()
 
   const methods = useForm<ItemizedDeductionUserInput>({ defaultValues })
   const { handleSubmit, watch } = methods
@@ -250,6 +259,7 @@ export const ItemizedDeductionsInfo = (): ReactElement => {
         <h2>Itemized Deduction Information</h2>
         {form}
         {navButtons}
+        {completionModal}
       </FormProvider>
     </form>
   )
