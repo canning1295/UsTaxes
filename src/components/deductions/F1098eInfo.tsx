@@ -4,7 +4,7 @@ import { FormProvider, useForm } from 'react-hook-form'
 import SchoolIcon from '@material-ui/icons/School'
 import { useDispatch, useSelector, TaxesState } from 'ustaxes/redux'
 import { add1098e, edit1098e, remove1098e } from 'ustaxes/redux/actions'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import { Currency, LabeledInput } from 'ustaxes/components/input'
 import { F1098e } from 'ustaxes/core/data'
 import { Patterns } from 'ustaxes/components/Patterns'
@@ -45,7 +45,7 @@ export default function F1098eInfo(): ReactElement {
 
   const defaultValues: F1098EUserInput = blankUserInput
 
-  const { onAdvance, navButtons } = usePager()
+  const { onAdvance, navButtons, completionModal } = usePagerWithCompletion()
 
   const methods = useForm<F1098EUserInput>({ defaultValues })
   const { handleSubmit } = methods
@@ -104,6 +104,7 @@ export default function F1098eInfo(): ReactElement {
         {form}
         {navButtons}
       </form>
+      {completionModal}
     </FormProvider>
   )
 }

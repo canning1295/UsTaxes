@@ -1,6 +1,6 @@
 import { ReactElement } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import { EstimatedTaxPayments, TaxYear } from 'ustaxes/core/data'
 import { YearsTaxesState } from 'ustaxes/redux'
 import { Currency, LabeledInput } from 'ustaxes/components/input'
@@ -62,7 +62,7 @@ export default function EstimatedTaxes(): ReactElement {
   const methods = useForm<EstimatedTaxesUserInput>({ defaultValues })
   const { handleSubmit } = methods
 
-  const { navButtons, onAdvance } = usePager()
+  const { navButtons, onAdvance, completionModal } = usePagerWithCompletion()
 
   const onSubmitAdd = (formData: EstimatedTaxesUserInput): void => {
     dispatch(addEstimatedPayment(toPayments(formData)))
@@ -112,14 +112,20 @@ export default function EstimatedTaxes(): ReactElement {
   const form: ReactElement = <>{w2sBlock}</>
 
   return (
-    <form tabIndex={-1} onSubmit={intentionallyFloat(handleSubmit(onAdvance))}>
-      <h2>Estimated Taxes</h2>
-      <p>
-        Did you already make payments towards your {activeYear} taxes this year
-        or last year?
-      </p>
-      <FormProvider {...methods}>{form}</FormProvider>
-      {navButtons}
-    </form>
+    <FormProvider {...methods}>
+      <form
+        tabIndex={-1}
+        onSubmit={intentionallyFloat(handleSubmit(onAdvance))}
+      >
+        <h2>Estimated Taxes</h2>
+        <p>
+          Did you already make payments towards your {activeYear} taxes this
+          year or last year?
+        </p>
+        {form}
+        {navButtons}
+      </form>
+      {completionModal}
+    </FormProvider>
   )
 }
