@@ -1,10 +1,10 @@
 import { ReactElement } from 'react'
 import { Helmet } from 'react-helmet'
-import { FormProvider, useForm } from 'react-hook-form'
+import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
 import SchoolIcon from '@material-ui/icons/School'
 import { useDispatch, useSelector, TaxesState } from 'ustaxes/redux'
 import { add1098e, edit1098e, remove1098e } from 'ustaxes/redux/actions'
-import { usePager } from 'ustaxes/components/pager'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import { Currency, LabeledInput } from 'ustaxes/components/input'
 import { F1098e } from 'ustaxes/core/data'
 import { Patterns } from 'ustaxes/components/Patterns'
@@ -19,6 +19,12 @@ const showInterest = (a: F1098e): ReactElement => {
 interface F1098EUserInput {
   lender: string
   interest: string | number
+}
+
+interface PagerWithCompletion {
+  navButtons: ReactElement | undefined
+  onAdvance: () => void
+  completionModal: ReactElement
 }
 
 const blankUserInput: F1098EUserInput = {
@@ -44,7 +50,10 @@ export default function F1098eInfo(): ReactElement {
 
   const defaultValues: F1098EUserInput = blankUserInput
 
-  const { onAdvance, navButtons } = usePager()
+  const usePagerWithCompletionTyped =
+    usePagerWithCompletion as () => PagerWithCompletion
+  const { onAdvance, navButtons, completionModal } =
+    usePagerWithCompletionTyped()
 
   const methods = useForm<F1098EUserInput>({ defaultValues })
   const { handleSubmit } = methods
@@ -60,6 +69,10 @@ export default function F1098eInfo(): ReactElement {
     (formData: F1098EUserInput): void => {
       dispatch(edit1098e({ value: toF1098e(formData), index }))
     }
+
+  const handleAdvance: SubmitHandler<F1098EUserInput> = () => {
+    onAdvance()
+  }
 
   const form: ReactElement | undefined = (
     <FormListContainer
@@ -93,7 +106,7 @@ export default function F1098eInfo(): ReactElement {
     <FormProvider {...methods}>
       <form
         tabIndex={-1}
-        onSubmit={intentionallyFloat(handleSubmit(onAdvance))}
+        onSubmit={intentionallyFloat(handleSubmit(handleAdvance))}
       >
         <Helmet>
           <title>1098-E Information | Deductions | UsTaxes.org</title>
@@ -102,6 +115,7 @@ export default function F1098eInfo(): ReactElement {
         {form}
         {navButtons}
       </form>
+      {completionModal}
     </FormProvider>
   )
 }

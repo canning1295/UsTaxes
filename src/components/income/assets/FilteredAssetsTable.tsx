@@ -1,4 +1,5 @@
 import { Button, Grid, useMediaQuery } from '@material-ui/core'
+import { CheckCircleOutline, Warning } from '@material-ui/icons'
 import { ReactElement, useMemo, useState } from 'react'
 import DataTable, { TableColumn } from 'react-data-table-component'
 import { FormProvider, useForm } from 'react-hook-form'
@@ -13,6 +14,7 @@ import { enumKeys } from 'ustaxes/core/util'
 import { YearsTaxesState } from 'ustaxes/redux'
 import * as actions from 'ustaxes/redux/actions'
 import AssetSummary from './AssetSummary'
+import { isAssetValid } from 'ustaxes/forms/validation'
 
 type CloseYear = TaxYear | 'none' | 'all'
 interface AssetFilter {
@@ -30,6 +32,18 @@ const blankFilter: AssetFilter = {
 type Row = WithIndex<Asset<Date>>
 const assetTableColumns: TableColumn<Row>[] = [
   {
+    id: 'validity',
+    name: '',
+    width: '56px',
+    cell: (row: Row) =>
+      isAssetValid(row) ? (
+        <CheckCircleOutline style={{ color: '#4caf50', fontSize: 18 }} />
+      ) : (
+        <Warning style={{ color: '#f44336', fontSize: 18 }} />
+      )
+  },
+  {
+    id: 'security',
     name: 'Security',
     selector: ({ name }) => name,
     sortable: true

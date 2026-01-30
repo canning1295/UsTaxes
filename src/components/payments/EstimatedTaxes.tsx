@@ -1,7 +1,8 @@
 import { ReactElement } from 'react'
-import { FormProvider, useForm } from 'react-hook-form'
-import { usePager } from 'ustaxes/components/pager'
+import { FormProvider, SubmitHandler, useForm } from 'react-hook-form'
+import { usePagerWithCompletion } from 'ustaxes/components/usePagerWithCompletion'
 import { EstimatedTaxPayments, TaxYear } from 'ustaxes/core/data'
+import { intentionallyFloat } from 'ustaxes/core/util'
 import { YearsTaxesState } from 'ustaxes/redux'
 import { Currency, LabeledInput } from 'ustaxes/components/input'
 import { Patterns } from 'ustaxes/components/Patterns'
@@ -20,6 +21,12 @@ import { useYearSelector } from 'ustaxes/redux/yearDispatch'
 interface EstimatedTaxesUserInput {
   label: string
   payment: string
+}
+
+interface PagerWithCompletion {
+  navButtons: ReactElement | undefined
+  onAdvance: () => void
+  completionModal: ReactElement
 }
 
 const blankUserInput: EstimatedTaxesUserInput = {
@@ -60,8 +67,12 @@ export default function EstimatedTaxes(): ReactElement {
   const dispatch = useDispatch()
 
   const methods = useForm<EstimatedTaxesUserInput>({ defaultValues })
+  const { handleSubmit } = methods
 
-  const { navButtons, onAdvance } = usePager()
+  const usePagerWithCompletionTyped =
+    usePagerWithCompletion as () => PagerWithCompletion
+  const { navButtons, onAdvance, completionModal } =
+    usePagerWithCompletionTyped()
 
   const onSubmitAdd = (formData: EstimatedTaxesUserInput): void => {
     dispatch(addEstimatedPayment(toPayments(formData)))
@@ -72,6 +83,10 @@ export default function EstimatedTaxes(): ReactElement {
     (formData: EstimatedTaxesUserInput): void => {
       dispatch(editEstimatedPayment({ index, value: toPayments(formData) }))
     }
+
+  const handleAdvance: SubmitHandler<EstimatedTaxesUserInput> = () => {
+    onAdvance()
+  }
 
   const w2sBlock = (
     <FormListContainer<EstimatedTaxesUserInput>
@@ -110,14 +125,20 @@ export default function EstimatedTaxes(): ReactElement {
   const form: ReactElement = <>{w2sBlock}</>
 
   return (
-    <form tabIndex={-1} onSubmit={onAdvance}>
-      <h2>Estimated Taxes</h2>
-      <p>
-        Did you already make payments towards your {activeYear} taxes this year
-        or last year?
-      </p>
-      <FormProvider {...methods}>{form}</FormProvider>
-      {navButtons}
-    </form>
+    <FormProvider {...methods}>
+      <form
+        tabIndex={-1}
+        onSubmit={intentionallyFloat(handleSubmit(handleAdvance))}
+      >
+        <h2>Estimated Taxes</h2>
+        <p>
+          Did you already make payments towards your {activeYear} taxes this
+          year or last year?
+        </p>
+        {form}
+        {navButtons}
+      </form>
+      {completionModal}
+    </FormProvider>
   )
 }
