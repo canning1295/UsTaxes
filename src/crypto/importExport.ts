@@ -6,7 +6,7 @@
  */
 
 import { encrypt, decrypt } from './encrypt'
-import { ExportedData, createExportData } from './types'
+import { ExportedData } from './types'
 
 export const EXPORT_VERSION = '1.0'
 
@@ -38,7 +38,13 @@ export const exportEncrypted = async (
  * Export data without encryption
  */
 export const exportPlain = (data: unknown): ExportedData => {
-  return createExportData(data, false)
+  return {
+    version: EXPORT_VERSION,
+    exportDate: new Date().toISOString(),
+    appVersion: process.env.REACT_APP_VERSION ?? '0.1.23',
+    encrypted: false,
+    data
+  }
 }
 
 /**

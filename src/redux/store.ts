@@ -13,7 +13,7 @@ import {
   PersistedState,
   createMigrate
 } from 'redux-persist'
-import storage from 'redux-persist/lib/storage' // defaults to localStorage for web
+import { encryptedStorage } from 'ustaxes/crypto'
 import { Asset, Information, TaxYear } from 'ustaxes/core/data'
 import { blankYearTaxesState, YearsTaxesState } from '.'
 import { Actions } from './actions'
@@ -130,8 +130,10 @@ const persistedReducer = fsReducer(
       // number will be compared and all migrations between
       // the persisted version and the version here will be
       // applied in order
-      version: 1,
-      storage,
+      version: 3,
+      // Use encrypted storage - encrypts with AES-GCM-256 when password is enabled
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      storage: encryptedStorage,
       migrate: createMigrate(migrations, { debug: false }),
       transforms: [dateStringTransform]
     },

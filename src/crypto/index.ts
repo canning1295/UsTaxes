@@ -13,9 +13,8 @@ export {
 
 export {
   defaultSecuritySettings,
-  defaultLockState,
-  isEncryptedState,
-  createExportData
+  defaultLockState
+  // NOTE: isEncryptedState and createExportData removed - they were unused dead code
 } from './types'
 
 export type {
@@ -30,13 +29,26 @@ export type {
 } from './types'
 
 export {
-  createSecurityTransform,
-  createSensitiveFieldsTransform,
+  // NOTE: createSecurityTransform and createSensitiveFieldsTransform removed - they were unused dead code
   setSessionPassword,
   clearSessionPassword,
   hasSessionPassword,
-  getSessionPassword
+  hasSessionPasswordAsync,
+  getSessionPassword,
+  getSessionCryptoKey,
+  setSecureStorageMode
 } from './transform'
+
+export {
+  isSecureStorageAvailable,
+  initializeSession,
+  retrieveSessionKey,
+  clearSessionKey,
+  hasValidSessionKey,
+  deriveSessionKey,
+  encryptWithSessionKey,
+  decryptWithSessionKey
+} from './secureKeyStorage'
 
 export {
   exportEncrypted,
@@ -48,3 +60,34 @@ export {
   readExportFile,
   EXPORT_VERSION
 } from './importExport'
+
+export {
+  createEncryptedStorage,
+  encryptedStorage,
+  encryptAllStorage,
+  decryptAllStorage,
+  reencryptStorage,
+  hasEncryptedData
+} from './encryptedStorage'
+
+export {
+  hasExistingTaxData,
+  hasYearData,
+  getDataSummary,
+  isDataEncrypted,
+  getYearDataSummaries
+  // NOTE: isLegacySecurityFormat was removed - the legacy format was never created
+} from './utils'
+
+export type { DataSummary, YearDataSummary } from './utils'
+
+export {
+  getEncryptionStatus,
+  checkLocalStorageEncrypted,
+  logEncryptionStatus,
+  atomicDisableEncryption,
+  atomicEnableEncryption,
+  detectAndRecoverInconsistentState
+} from './encryptionState'
+
+export type { EncryptionStatus, TransitionResult } from './encryptionState'

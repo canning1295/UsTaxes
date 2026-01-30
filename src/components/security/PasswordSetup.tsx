@@ -18,7 +18,11 @@ import useStyles from './styles'
 
 interface PasswordSetupProps {
   open: boolean
-  onSuccess: (passwordHash: string) => void
+  /**
+   * Called on success with the password hash and plain password.
+   * The plain password is needed for encryption.
+   */
+  onSuccess: (passwordHash: string, plainPassword: string) => void
   onCancel: () => void
   isChange?: boolean
   currentPasswordHash?: string | null
@@ -82,7 +86,7 @@ export const PasswordSetup = ({
       }
 
       const hash = await hashPassword(password)
-      onSuccess(hash)
+      onSuccess(hash, password)
       setPassword('')
       setConfirmPassword('')
       setCurrentPassword('')

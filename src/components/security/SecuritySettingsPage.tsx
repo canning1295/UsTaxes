@@ -38,10 +38,20 @@ import {
 import {
   SessionTimeoutMinutes,
   SecurityQuestion,
-  SecuritySettings
+  SecuritySettings,
+  hasExistingTaxData,
+  setSessionPassword,
+  clearSessionPassword,
+  encryptAllStorage,
+  decryptAllStorage,
+  atomicDisableEncryption,
+  atomicEnableEncryption
 } from 'ustaxes/crypto'
+import { YearsTaxesState } from 'ustaxes/redux'
 import { PasswordSetup } from './PasswordSetup'
 import { PasswordPrompt } from './PasswordPrompt'
+import { EncryptionWarningModal } from './EncryptionWarningModal'
+import { DecryptionConfirmModal } from './DecryptionConfirmModal'
 import useStyles from './styles'
 
 // Typed selectors for use with useSelector
@@ -77,6 +87,10 @@ export const SecuritySettingsPage = (): ReactElement => {
   const classes = useStyles()
   const dispatch = useDispatch()
 
+  // Get full state to check for existing data
+  const fullState = useSelector((state: YearsTaxesState) => state)
+  const hasData = hasExistingTaxData(fullState)
+
   const securitySettings = useSelector(selectSecuritySettings)
   const isPasswordEnabled = useSelector(selectIsPasswordEnabled)
   const isSessionTimeoutEnabled = useSelector(selectIsSessionTimeoutEnabled)
@@ -111,6 +125,11 @@ export const SecuritySettingsPage = (): ReactElement => {
     useState(false)
   const [biometricError, setBiometricError] = useState<string | null>(null)
 
+  // New encryption workflow modals
+  const [showEncryptionWarning, setShowEncryptionWarning] = useState(false)
+  const [showDecryptionConfirm, setShowDecryptionConfirm] = useState(false)
+  const [encryptionError, setEncryptionError] = useState<string | null>(null)
+
   // Security questions state - get existing questions from settings
   const existingQuestions = securitySettings.securityQuestions
   const [question1, setQuestion1] = useState<string>(
@@ -137,26 +156,97 @@ export const SecuritySettingsPage = (): ReactElement => {
 
   const handleTogglePasswordProtection = (): void => {
     if (isPasswordEnabled) {
-      setPendingDisable(true)
-      setShowPasswordPrompt(true)
+      // Disabling encryption - show decryption confirmation
+      setShowDecryptionConfirm(true)
     } else {
-      setShowPasswordSetup(true)
+      // Enabling encryption - check if user has existing data
+      if (hasData) {
+        // Show warning modal first
+        setShowEncryptionWarning(true)
+      } else {
+        // No data, go directly to password setup
+        setShowPasswordSetup(true)
+      }
     }
   }
 
-  const handlePasswordSetupSuccess = (passwordHash: string): void => {
-    dispatch(enablePasswordProtection(passwordHash))
-    // Auto-unlock after initial password setup - user is already authenticated
-    dispatch(unlockApp())
-    sessionStorage.setItem('ustaxes_unlocked', 'true')
-    setShowPasswordSetup(false)
+  // Handler when user confirms they want to proceed with encryption (from warning modal)
+  const handleEncryptionWarningConfirm = (): void => {
+    setShowEncryptionWarning(false)
+    setShowPasswordSetup(true)
   }
 
-  const handlePasswordVerified = (): void => {
+  // Handler when user cancels encryption warning
+  const handleEncryptionWarningCancel = (): void => {
+    setShowEncryptionWarning(false)
+  }
+
+  // Handler when user confirms decryption
+  const handleDecryptionConfirm = (): void => {
+    setShowDecryptionConfirm(false)
+    // Now require password verification before disabling
+    setPendingDisable(true)
+    setShowPasswordPrompt(true)
+  }
+
+  // Handler when user cancels decryption
+  const handleDecryptionCancel = (): void => {
+    setShowDecryptionConfirm(false)
+  }
+
+  const handlePasswordSetupSuccess = async (
+    passwordHash: string,
+    plainPassword: string
+  ): Promise<void> => {
+    // Clear any previous errors
+    setEncryptionError(null)
+
+    // Use atomic enable encryption to avoid race conditions with redux-persist
+    try {
+      const result = await atomicEnableEncryption(plainPassword, passwordHash)
+
+      if (result.success) {
+        setShowPasswordSetup(false)
+      } else {
+        throw new Error(result.error ?? 'Unknown error during transition')
+      }
+    } catch (err) {
+      console.error('[SecuritySettingsPage] Failed to enable encryption:', err)
+      // Clear the session password since encryption failed
+      await clearSessionPassword()
+      setEncryptionError(
+        'Failed to encrypt data. Password protection was not enabled. Please try again.'
+      )
+      setShowPasswordSetup(false)
+    }
+  }
+
+  const handlePasswordVerified = async (
+    plainPassword: string
+  ): Promise<void> => {
     setShowPasswordPrompt(false)
     if (pendingDisable) {
-      dispatch(disablePasswordProtection())
-      setPendingDisable(false)
+      // Clear any previous errors
+      setEncryptionError(null)
+
+      try {
+        // Use the atomic transition helper for reliability
+        const result = await atomicDisableEncryption(plainPassword)
+
+        if (result.success) {
+          // Success - reload to ensure clean state
+          setPendingDisable(false)
+          window.location.reload()
+        } else {
+          throw new Error(result.error ?? 'Unknown error during transition')
+        }
+      } catch (err) {
+        console.error('[SecuritySettingsPage] Disable encryption failed:', err)
+        setEncryptionError(
+          'Failed to disable encryption. Your data is safe. Please try exporting your data first, then clear browser storage and re-import.'
+        )
+        setPendingDisable(false)
+      }
     }
   }
 
@@ -165,7 +255,20 @@ export const SecuritySettingsPage = (): ReactElement => {
     setPendingDisable(false)
   }
 
-  const handleChangePasswordSuccess = (passwordHash: string): void => {
+  const handleChangePasswordSuccess = async (
+    passwordHash: string,
+    plainPassword: string
+  ): Promise<void> => {
+    // Update session password
+    await setSessionPassword(plainPassword)
+
+    // Re-encrypt data with new password
+    try {
+      await encryptAllStorage(['persist:root'], plainPassword)
+    } catch (err) {
+      console.error('[SecuritySettingsPage] Failed to re-encrypt data:', err)
+    }
+
     dispatch(enablePasswordProtection(passwordHash))
     setShowPasswordChange(false)
   }
@@ -353,6 +456,12 @@ export const SecuritySettingsPage = (): ReactElement => {
             label={isPasswordEnabled ? 'Enabled' : 'Disabled'}
           />
 
+          {encryptionError && (
+            <Alert severity="error" style={{ marginTop: 8, marginBottom: 8 }}>
+              {encryptionError}
+            </Alert>
+          )}
+
           {isPasswordEnabled && (
             <Box className={classes.buttonGroup}>
               <Button
@@ -517,16 +626,33 @@ export const SecuritySettingsPage = (): ReactElement => {
         </CardContent>
       </Card>
 
-      {/* Dialogs */}
+      {/* Encryption Workflow Dialogs */}
+      <EncryptionWarningModal
+        open={showEncryptionWarning}
+        onConfirm={handleEncryptionWarningConfirm}
+        onCancel={handleEncryptionWarningCancel}
+      />
+
+      <DecryptionConfirmModal
+        open={showDecryptionConfirm}
+        onConfirm={handleDecryptionConfirm}
+        onCancel={handleDecryptionCancel}
+      />
+
+      {/* Password Dialogs */}
       <PasswordSetup
         open={showPasswordSetup}
-        onSuccess={handlePasswordSetupSuccess}
+        onSuccess={(hash, password) =>
+          void handlePasswordSetupSuccess(hash, password)
+        }
         onCancel={() => setShowPasswordSetup(false)}
       />
 
       <PasswordSetup
         open={showPasswordChange}
-        onSuccess={handleChangePasswordSuccess}
+        onSuccess={(hash, password) =>
+          void handleChangePasswordSuccess(hash, password)
+        }
         onCancel={() => setShowPasswordChange(false)}
         isChange
         currentPasswordHash={securitySettings.passwordHash}
@@ -534,7 +660,7 @@ export const SecuritySettingsPage = (): ReactElement => {
 
       <PasswordPrompt
         open={showPasswordPrompt}
-        onSuccess={handlePasswordVerified}
+        onSuccess={(password) => void handlePasswordVerified(password)}
         onClearData={handlePasswordPromptCancel}
       />
 

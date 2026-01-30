@@ -24,7 +24,11 @@ import useStyles from './styles'
 
 interface PasswordPromptProps {
   open: boolean
-  onSuccess: () => void
+  /**
+   * Called on success with the verified plain password.
+   * The plain password is needed for decryption operations.
+   */
+  onSuccess: (plainPassword: string) => void
   onClearData?: () => void
 }
 
@@ -62,8 +66,9 @@ export const PasswordPrompt = ({
 
       if (isValid) {
         dispatch(unlockApp())
+        const verifiedPassword = password
         setPassword('')
-        onSuccess()
+        onSuccess(verifiedPassword)
       } else {
         dispatch(recordFailedAttempt())
         setError('Incorrect password')
