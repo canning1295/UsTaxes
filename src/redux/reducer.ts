@@ -558,7 +558,7 @@ const appSettingsReducer = (
   const year = action.year
 
   // Get completed sections for the current year (handles migration from old format)
-  const completedSectionsByYear = state.completedSectionsByYear ?? {}
+  const completedSectionsByYear = state.completedSectionsByYear
   let completedSections = completedSectionsByYear[year] ?? []
 
   // Track if completedSections changed

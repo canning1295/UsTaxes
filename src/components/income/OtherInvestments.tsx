@@ -103,7 +103,7 @@ export const OtherInvestments = (): ReactElement => {
   const year = useSelector((state: YearsTaxesState) => state.activeYear)
   const assets = useSelector((state: YearsTaxesState) => state.assets)
   const autoSaveEnabled = useSelector(
-    (state: YearsTaxesState) => state.appSettings.autoSaveEnabled ?? false
+    (state: YearsTaxesState) => state.appSettings.autoSaveEnabled
   )
   const [isOpen, setOpen] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | undefined>(
@@ -130,12 +130,10 @@ export const OtherInvestments = (): ReactElement => {
   const handleEdit = useCallback(
     (index: number) => {
       const asset = assets[index]
-      if (asset) {
-        reset(assetToInput(asset))
-        setEditingIndex(index)
-        setAutoSavedNewIndex(undefined)
-        setOpen(true)
-      }
+      reset(assetToInput(asset))
+      setEditingIndex(index)
+      setAutoSavedNewIndex(undefined)
+      setOpen(true)
     },
     [assets, reset]
   )

@@ -1,12 +1,17 @@
 /**
  * Tests for prepopulate feature
- * 
+ *
  * Tests the prepopulate functionality which copies taxpayer info
  * from a previous year or export file to a new year.
  */
 
 import { hasYearData, pickPrepopulateFields } from 'ustaxes/data/prepopulate'
-import { Information, FilingStatus, PersonRole } from 'ustaxes/core/data'
+import {
+  Information,
+  FilingStatus,
+  PersonRole,
+  Income1099Type
+} from 'ustaxes/core/data'
 import { blankState } from 'ustaxes/redux/reducer'
 
 describe('Prepopulate feature', () => {
@@ -27,7 +32,11 @@ describe('Prepopulate feature', () => {
             role: PersonRole.PRIMARY,
             isBlind: false,
             isTaxpayerDependent: false,
-            dateOfBirth: new Date('1980-01-01')
+            dateOfBirth: new Date('1980-01-01'),
+            address: {
+              address: '123 Main St',
+              city: 'Anytown'
+            }
           }
         }
       }
@@ -63,11 +72,10 @@ describe('Prepopulate feature', () => {
               firstName: 'Child',
               lastName: 'Doe',
               ssid: '111-22-3333',
-              relationship: 'SON',
-              birthYear: 2015,
-              numberOfMonths: 12,
-              isStudent: false,
-              qualifyingInfo: undefined
+              role: PersonRole.DEPENDENT,
+              isBlind: false,
+              dateOfBirth: new Date('2015-01-01'),
+              relationship: 'SON'
             }
           ]
         }
@@ -114,7 +122,9 @@ describe('Prepopulate feature', () => {
         ...blankState,
         f1099s: [
           {
-            ppisum: 1000,
+            payer: 'Test Bank',
+            type: Income1099Type.INT,
+            form: { income: 1000 },
             personRole: PersonRole.PRIMARY
           }
         ]
@@ -160,7 +170,7 @@ describe('Prepopulate feature', () => {
 
       expect(result.taxPayer.primaryPerson?.firstName).toBe('John')
       expect(result.taxPayer.primaryPerson?.lastName).toBe('Doe')
-      expect(result.taxPayer.primaryPerson?.address?.city).toBe('Los Angeles')
+      expect(result.taxPayer.primaryPerson?.address.city).toBe('Los Angeles')
       expect(result.taxPayer.filingStatus).toBe(FilingStatus.S)
     })
 
@@ -198,21 +208,19 @@ describe('Prepopulate feature', () => {
               firstName: 'Child1',
               lastName: 'Doe',
               ssid: '111-22-3333',
-              relationship: 'SON',
-              birthYear: 2015,
-              numberOfMonths: 12,
-              isStudent: false,
-              qualifyingInfo: undefined
+              role: PersonRole.DEPENDENT,
+              isBlind: false,
+              dateOfBirth: new Date('2015-01-01'),
+              relationship: 'SON'
             },
             {
               firstName: 'Child2',
               lastName: 'Doe',
               ssid: '222-33-4444',
-              relationship: 'DAUGHTER',
-              birthYear: 2018,
-              numberOfMonths: 12,
-              isStudent: false,
-              qualifyingInfo: undefined
+              role: PersonRole.DEPENDENT,
+              isBlind: false,
+              dateOfBirth: new Date('2018-01-01'),
+              relationship: 'DAUGHTER'
             }
           ]
         }
@@ -269,7 +277,9 @@ describe('Prepopulate feature', () => {
         ...blankState,
         f1099s: [
           {
-            ppisum: 1000,
+            payer: 'Test Bank',
+            type: Income1099Type.INT,
+            form: { income: 1000 },
             personRole: PersonRole.PRIMARY
           }
         ]

@@ -22,7 +22,6 @@ import Alert from '@material-ui/lab/Alert'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   enablePasswordProtection,
-  disablePasswordProtection,
   setSessionTimeout,
   enableSessionTimeout,
   disableSessionTimeout,
@@ -32,7 +31,6 @@ import {
   setSecurityQuestions,
   enablePasswordRecovery,
   disablePasswordRecovery,
-  unlockApp,
   SecurityState
 } from 'ustaxes/redux/security'
 import {
@@ -43,7 +41,6 @@ import {
   setSessionPassword,
   clearSessionPassword,
   encryptAllStorage,
-  decryptAllStorage,
   atomicDisableEncryption,
   atomicEnableEncryption
 } from 'ustaxes/crypto'
@@ -298,7 +295,7 @@ export const SecuritySettingsPage = (): ReactElement => {
     }
 
     // Check if WebAuthn is available
-    if (!window.PublicKeyCredential) {
+    if (typeof window === 'undefined' || !('PublicKeyCredential' in window)) {
       setBiometricError(
         'Biometric authentication is not supported in this browser.'
       )

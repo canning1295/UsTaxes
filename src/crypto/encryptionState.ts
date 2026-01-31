@@ -26,22 +26,17 @@ type YearsTaxesStateWithSettings = YearsTaxesState & {
 
 type StoreModule = typeof import('ustaxes/redux/store')
 type ActionsModule = typeof import('ustaxes/redux/actions')
+type SecurityModule = typeof import('ustaxes/redux/security')
+type FsActionsModule = typeof import('ustaxes/redux/fs/Actions')
 
-type FsRecover = (data: string) => {
-  type: string
-  data: string
-}
-
-type ToggleAutoSave = (enabled: boolean) => (year: TaxYear) => { type: string }
+type FsRecover = FsActionsModule['fsRecover']
+type SetInfo = ActionsModule['setInfo']
 
 type SecurityActions = {
-  disablePasswordProtection: () => { type: string }
-  enablePasswordProtection: (passwordHash: string) => {
-    type: string
-    passwordHash: string
-  }
+  disablePasswordProtection: SecurityModule['disablePasswordProtection']
+  enablePasswordProtection: SecurityModule['enablePasswordProtection']
   fsRecover: FsRecover
-  toggleAutoSave: ToggleAutoSave
+  setInfo: SetInfo
 }
 
 const buildYearData = (
@@ -67,14 +62,14 @@ let _enablePasswordProtection:
   | SecurityActions['enablePasswordProtection']
   | null = null
 let _fsRecover: FsRecover | null = null
-let _toggleAutoSave: ToggleAutoSave | null = null
+let _setInfo: SetInfo | null = null
 
 const getStore = async (): Promise<{
   store: StoreModule['store']
   persistor: StoreModule['persistor']
 }> => {
   if (!_store) {
-    const storeModule = (await import('ustaxes/redux/store'))
+    const storeModule = await import('ustaxes/redux/store')
     _store = storeModule.store
     _persistor = storeModule.persistor
   }
@@ -97,22 +92,18 @@ const getSecurityActions = async (): Promise<SecurityActions> => {
     }
     _fsRecover = fsModule.fsRecover
   }
-  if (!_toggleAutoSave) {
-    const actionsModule = (await import(
-      'ustaxes/redux/actions'
-    ))
-    _toggleAutoSave = actionsModule.toggleAutoSave as ToggleAutoSave
+  if (!_setInfo) {
+    const actionsModule = (await import('ustaxes/redux/actions')) as {
+      setInfo: SetInfo
+    }
+    _setInfo = actionsModule.setInfo
   }
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
   return {
-    disablePasswordProtection:
-      _disablePasswordProtection ,
-    enablePasswordProtection:
-      _enablePasswordProtection ,
-    fsRecover: _fsRecover ,
-    toggleAutoSave: _toggleAutoSave 
+    disablePasswordProtection: _disablePasswordProtection,
+    enablePasswordProtection: _enablePasswordProtection,
+    fsRecover: _fsRecover,
+    setInfo: _setInfo
   }
-  /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 }
 
 /**
@@ -170,9 +161,7 @@ export const getEncryptionStatus = async (): Promise<EncryptionStatus> => {
   // Get Redux state (lazy load to avoid circular dependency)
   const { store } = await getStore()
   const state = store.getState() as YearsTaxesStateWithSettings
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  const settingsPasswordEnabled =
-    state.security.settings.passwordEnabled ?? false
+  const settingsPasswordEnabled = state.security.settings.passwordEnabled
 
   // Check localStorage
   const localStorageHasData = localStorage.getItem('persist:root') !== null
@@ -206,6 +195,7 @@ export const getEncryptionStatus = async (): Promise<EncryptionStatus> => {
 export const logEncryptionStatus = async (
   context = 'Status Check'
 ): Promise<EncryptionStatus> => {
+  void context
   const status = await getEncryptionStatus()
   return status
 }
@@ -244,20 +234,18 @@ export const atomicDisableEncryption = async (
   password: string
 ): Promise<TransitionResult> => {
   try {
+    void password
     // Lazy load store and actions to avoid circular dependency
     const { store, persistor } = await getStore()
-    const securityActions = (await getSecurityActions())
+    const securityActions = await getSecurityActions()
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const disablePasswordProtection = securityActions.disablePasswordProtection
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const fsRecover = securityActions.fsRecover
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const toggleAutoSave = securityActions.toggleAutoSave
+    const setInfo = securityActions.setInfo
 
     // Import stateToString for proper serialization
-    const fsModule = (await import(
-      'ustaxes/redux/fs'
-    ))
+    const fsModule = await import('ustaxes/redux/fs')
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const stateToString = fsModule.stateToString
 
@@ -300,12 +288,9 @@ export const atomicDisableEncryption = async (
     // persistReducer doesn't see the state change and won't persist it!
     // We dispatch follow-up actions to trigger redux-persist to see the changes.
     const updatedState = store.getState() as YearsTaxesStateWithSettings
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const currentAutoSave = updatedState.appSettings?.autoSaveEnabled ?? false
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    store.dispatch(toggleAutoSave(!currentAutoSave)(updatedState.activeYear))
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    store.dispatch(toggleAutoSave(currentAutoSave)(updatedState.activeYear))
+    store.dispatch(
+      setInfo(updatedState[updatedState.activeYear])(updatedState.activeYear)
+    )
 
     // STEP 6: Flush to persist the unencrypted data
     // encryptedStorage will write unencrypted because session password is gone
@@ -354,18 +339,15 @@ export const atomicEnableEncryption = async (
   try {
     // Lazy load store and actions to avoid circular dependency
     const { store, persistor } = await getStore()
-    const securityActions = (await getSecurityActions())
+    const securityActions = await getSecurityActions()
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const enablePasswordProtection = securityActions.enablePasswordProtection
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const fsRecover = securityActions.fsRecover
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const toggleAutoSave = securityActions.toggleAutoSave
+    const setInfo = securityActions.setInfo
 
     // Import stateToString for proper serialization
-    const fsModule = (await import(
-      'ustaxes/redux/fs'
-    ))
+    const fsModule = await import('ustaxes/redux/fs')
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const stateToString = fsModule.stateToString
 
@@ -405,12 +387,9 @@ export const atomicEnableEncryption = async (
     // persistReducer doesn't see the state change and won't persist it!
     // We dispatch follow-up actions to trigger redux-persist to see the changes.
     const updatedState = store.getState() as YearsTaxesStateWithSettings
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const currentAutoSave = updatedState.appSettings?.autoSaveEnabled ?? false
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    store.dispatch(toggleAutoSave(!currentAutoSave)(updatedState.activeYear))
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    store.dispatch(toggleAutoSave(currentAutoSave)(updatedState.activeYear))
+    store.dispatch(
+      setInfo(updatedState[updatedState.activeYear])(updatedState.activeYear)
+    )
 
     // STEP 6: Flush to ensure the encrypted data is written
     await persistor.flush()

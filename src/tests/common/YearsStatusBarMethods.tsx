@@ -28,12 +28,13 @@ export default class YearStatusBarMethods extends DomMethods {
     if (y !== null) {
       return y.value as TaxYear
     } else {
-      const year = this.yearDropdownButton()?.textContent?.trim()
-      if (year !== undefined) {
-        return enumKeys(TaxYears).find((v) => TaxYears[v] === parseInt(year))
-      } else {
-        throw new Error('Cannot read year in form')
+      const yearText = this.yearDropdownButton()?.textContent?.trim() ?? ''
+      const match = yearText.match(/(\d{4})/)
+      if (match) {
+        const yearNum = parseInt(match[1], 10)
+        return enumKeys(TaxYears).find((v) => TaxYears[v] === yearNum)
       }
+      throw new Error('Cannot read year in form')
     }
   }
 

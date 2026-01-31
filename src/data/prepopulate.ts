@@ -41,7 +41,9 @@ export const pickPrepopulateFields = (source: Information): Information => {
             address: { ...source.taxPayer.primaryPerson.address }
           }
         : undefined,
-      spouse: source.taxPayer.spouse ? { ...source.taxPayer.spouse } : undefined,
+      spouse: source.taxPayer.spouse
+        ? { ...source.taxPayer.spouse }
+        : undefined,
       dependents: source.taxPayer.dependents.map((dependent) => ({
         ...dependent
       }))

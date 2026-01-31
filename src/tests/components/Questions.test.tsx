@@ -3,6 +3,7 @@
 import { ReactElement } from 'react'
 import { fireEvent, render, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
+import { MemoryRouter } from 'react-router-dom'
 import Questions from 'ustaxes/components/Questions'
 import { InfoStore, createStoreUnpersisted } from 'ustaxes/redux/store'
 import { questions } from 'ustaxes/core/data/questions'
@@ -36,9 +37,11 @@ describe('Questions', () => {
     const store = createStoreUnpersisted(info)
     const component = (
       <Provider store={store}>
-        <PagerContext.Provider value={{ onAdvance: () => {}, navButtons }}>
-          <Questions />
-        </PagerContext.Provider>
+        <MemoryRouter>
+          <PagerContext.Provider value={{ onAdvance: () => {}, navButtons }}>
+            <Questions />
+          </PagerContext.Provider>
+        </MemoryRouter>
       </Provider>
     )
 

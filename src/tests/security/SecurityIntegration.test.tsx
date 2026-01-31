@@ -7,7 +7,7 @@
 
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { createWholeStoreUnpersisted } from 'ustaxes/redux/store'
 import { blankYearTaxesState } from 'ustaxes/redux'
 import { SecuritySettingsPage } from 'ustaxes/components/security'

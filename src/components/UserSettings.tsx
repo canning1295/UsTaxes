@@ -59,11 +59,7 @@ import { TaxYear, TaxYears } from 'ustaxes/core/data'
 import { enumKeys } from 'ustaxes/core/util'
 import { hasYearData, pickPrepopulateFields } from 'ustaxes/data/prepopulate'
 
-type YearsTaxesStateWithSettings = YearsTaxesState & {
-  appSettings?: {
-    autoSaveEnabled?: boolean
-  }
-}
+type YearsTaxesStateWithSettings = YearsTaxesState
 
 const useStyles = makeStyles((theme) => ({
   autoSaveSection: {
@@ -102,9 +98,8 @@ const UserSettings = (): ReactElement => {
   const [prepopulateDialogOpen, setPrepopulateDialogOpen] = useState(false)
   const [prepopulateSourceLabel, setPrepopulateSourceLabel] =
     useState<string>('')
-  const [prepopulateData, setPrepopulateData] = useState<Partial<
-    YearsTaxesStateWithSettings
-  > | null>(null)
+  const [prepopulateData, setPrepopulateData] =
+    useState<Partial<YearsTaxesStateWithSettings> | null>(null)
   const [prepopulateAvailableYears, setPrepopulateAvailableYears] = useState<
     TaxYear[]
   >([])
@@ -156,17 +151,14 @@ const UserSettings = (): ReactElement => {
     (state: YearsTaxesStateWithSettings) => state.activeYear
   )
   const autoSaveEnabled = useSelector(
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    (state: YearsTaxesStateWithSettings) =>
-      state.appSettings?.autoSaveEnabled ?? false
+    (state: YearsTaxesStateWithSettings) => state.appSettings.autoSaveEnabled
   )
   const isPasswordEnabled = useSelector(
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     (state: YearsTaxesStateWithSettings) =>
-      state.security.settings.passwordEnabled ?? false
+      state.security.settings.passwordEnabled
   )
-  const activeYearHasData = useSelector(
-    (state: YearsTaxesStateWithSettings) => hasYearData(state[state.activeYear])
+  const activeYearHasData = useSelector((state: YearsTaxesStateWithSettings) =>
+    hasYearData(state[state.activeYear])
   )
 
   // Handle plain export (no encryption)
@@ -335,7 +327,7 @@ const UserSettings = (): ReactElement => {
         appSettings: importedData.appSettings ?? localState.appSettings
       }
 
-      const yearKeys = enumKeys(TaxYears) 
+      const yearKeys = enumKeys(TaxYears)
       for (const year of yearKeys) {
         mergedState[year] = localState[year]
       }

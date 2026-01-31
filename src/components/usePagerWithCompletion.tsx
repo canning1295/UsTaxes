@@ -66,17 +66,12 @@ export function usePagerWithCompletion(
   )
 
   // Get current section ID from URL (may be undefined if path not in map)
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  const currentSectionId = urlToSectionId[location.pathname] as
-    | SectionId
-    | undefined
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const currentSectionId = urlToSectionId[location.pathname]
   const sectionName = currentSectionId
     ? sectionNames[currentSectionId]
     : 'this section'
 
   // Check if section is already complete
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const isAlreadyComplete = currentSectionId
     ? completedSections.includes(currentSectionId)
     : false
@@ -98,7 +93,6 @@ export function usePagerWithCompletion(
     // - Modal is not skipped
     // - Current section exists
     // - Section data is valid (no invalid items)
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (
       !skipModal &&
       !isAlreadyComplete &&
@@ -119,7 +113,6 @@ export function usePagerWithCompletion(
   ])
 
   const handleMarkComplete = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (currentSectionId) {
       dispatch(markSectionComplete(currentSectionId))
     }

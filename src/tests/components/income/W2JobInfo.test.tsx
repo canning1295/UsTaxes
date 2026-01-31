@@ -1,5 +1,6 @@
 import { fireEvent, screen, render, waitFor, act } from '@testing-library/react'
 import { Provider } from 'react-redux'
+import { MemoryRouter } from 'react-router-dom'
 import { InfoStore, createStoreUnpersisted } from 'ustaxes/redux/store'
 import { PagerButtons, PagerContext } from 'ustaxes/components/pager'
 import {
@@ -123,9 +124,11 @@ describe('W2JobInfo', () => {
 
     render(
       <Provider store={store}>
-        <PagerContext.Provider value={{ onAdvance: jest.fn(), navButtons }}>
-          <W2JobInfo />
-        </PagerContext.Provider>
+        <MemoryRouter>
+          <PagerContext.Provider value={{ onAdvance: jest.fn(), navButtons }}>
+            <W2JobInfo />
+          </PagerContext.Provider>
+        </MemoryRouter>
       </Provider>
     )
 

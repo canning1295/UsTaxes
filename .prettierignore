@@ -41,3 +41,6 @@ tsconfig.json
 
 # don't worry about generated files
 /src/core/data/validate-fns.js
+
+# tooling artifacts
+/.amp

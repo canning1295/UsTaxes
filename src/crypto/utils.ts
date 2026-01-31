@@ -75,7 +75,7 @@ export const hasExistingTaxData = (state: YearsTaxesState): boolean => {
   }
 
   // Check assets
-  if (state.assets && state.assets.length > 0) {
+  if (state.assets.length > 0) {
     return true
   }
 
@@ -101,7 +101,7 @@ export const getDataSummary = (state: YearsTaxesState): DataSummary => {
   const summary: DataSummary = {
     hasData: false,
     yearsWithData: [],
-    assetCount: state.assets.length ?? 0,
+    assetCount: state.assets.length,
     w2Count: 0,
     f1099Count: 0,
     dependentCount: 0,
@@ -176,7 +176,7 @@ export const isDataEncrypted = (): boolean => {
 }
 
 // NOTE: isLegacySecurityFormat was removed - the legacy format was never created by any code path
-// See .amp/plan/fix-encryption/AUDIT_FINDINGS.md for details
+// See .amp/plans/fix-encryption/AUDIT_FINDINGS.md for details
 
 /**
  * Summary of data for a single tax year (used by import dialog)

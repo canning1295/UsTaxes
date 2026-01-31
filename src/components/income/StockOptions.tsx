@@ -116,7 +116,6 @@ export const StockOptions = (): ReactElement => {
       primary={(f) => f.name}
       secondary={(f) => {
         const f3921 = toF3921(f)
-        if (f3921 === undefined) return ''
         return (
           <span>
             {f3921.numShares} shares @{' '}

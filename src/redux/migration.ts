@@ -120,12 +120,21 @@ export const migrateEachYear = <S extends USTState>(state: S): S =>
     }
   }, state)
 
+export type MigrationState = {
+  appSettings?: {
+    autoSaveEnabled?: boolean
+    completedSections?: unknown
+    completedSectionsByYear?: Record<string, unknown>
+  }
+  activeYear?: string
+} & Record<string, unknown>
+
 /**
  * Migration to add appSettings field for auto-save and other app preferences
  */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-export const migrateAddAppSettings = (state: any): any => {
+export const migrateAddAppSettings = (
+  state: MigrationState
+): MigrationState => {
   if (!state.appSettings) {
     return {
       ...state,
@@ -152,7 +161,9 @@ export const migrateAddAppSettings = (state: any): any => {
  * Migration to convert completedSections to completedSectionsByYear
  * This handles the per-year tracking of completed sections
  */
-export const migrateCompletedSectionsToPerYear = (state: any): any => {
+export const migrateCompletedSectionsToPerYear = (
+  state: MigrationState
+): MigrationState => {
   // Handle case where appSettings doesn't exist at all
   if (!state.appSettings) {
     return {
@@ -196,5 +207,3 @@ export const migrateCompletedSectionsToPerYear = (state: any): any => {
 
   return state
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment */
-/* eslint-enable @typescript-eslint/no-unsafe-member-access */

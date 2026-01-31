@@ -211,4 +211,4 @@ export const setSecureStorageMode = (useSecure: boolean): void => {
 // NOTE: The following transforms were removed as dead code during cleanup:
 // - createSecurityTransform: Was never registered with redux-persist
 // - createSensitiveFieldsTransform: Was never used
-// See .amp/plan/fix-encryption/AUDIT_FINDINGS.md for details
+// See .amp/plans/fix-encryption/AUDIT_FINDINGS.md for details

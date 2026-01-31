@@ -94,7 +94,7 @@ const getQuestionsStatus = (info: Information): SectionStatus => {
     return 'complete'
   }
 
-  const answers: Responses = info.questions ?? {}
+  const answers: Responses = info.questions
 
   const isAnswered = (tag: string, valueTag: string): boolean => {
     const value = (answers as Record<string, unknown>)[tag]
@@ -375,7 +375,7 @@ export function useRawProgress(): ProgressSummary {
 /**
  * Map URL paths to section IDs for progress tracking
  */
-export const urlToSectionId: Record<string, SectionId> = {
+export const urlToSectionId: Record<string, SectionId | undefined> = {
   '/info': 'primary-taxpayer',
   '/spouseanddependent': 'spouse-dependents',
   '/income/w2jobinfo': 'w2s',

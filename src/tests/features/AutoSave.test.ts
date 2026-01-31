@@ -1,14 +1,10 @@
 /**
  * Tests for auto-save feature
- * 
+ *
  * Tests the useAutoSave hook which provides automatic form saving
  * when autoSaveEnabled is true in app settings.
  */
 
-import { renderHook, act } from '@testing-library/react-hooks'
-import { Provider } from 'react-redux'
-import { configureStore } from '@reduxjs/toolkit'
-import React from 'react'
 import { YearsTaxesState } from 'ustaxes/redux/data'
 import { blankYearTaxesState } from 'ustaxes/redux'
 
@@ -39,7 +35,7 @@ describe('Auto-save feature', () => {
           autoSaveEnabled: false
         }
       }
-      
+
       // Toggle on
       const updatedState: YearsTaxesState = {
         ...state,
@@ -49,7 +45,7 @@ describe('Auto-save feature', () => {
         }
       }
       expect(updatedState.appSettings.autoSaveEnabled).toBe(true)
-      
+
       // Toggle off
       const finalState: YearsTaxesState = {
         ...updatedState,
@@ -79,7 +75,7 @@ describe('Auto-save feature', () => {
   describe('Auto-save validation', () => {
     it('should support optional canSave validation function', () => {
       const canSave = (data: { value: number }) => data.value > 0
-      
+
       expect(canSave({ value: 10 })).toBe(true)
       expect(canSave({ value: 0 })).toBe(false)
       expect(canSave({ value: -1 })).toBe(false)
@@ -87,7 +83,7 @@ describe('Auto-save feature', () => {
 
     it('should default canSave to always true', () => {
       const defaultCanSave = () => true
-      
+
       expect(defaultCanSave()).toBe(true)
     })
   })

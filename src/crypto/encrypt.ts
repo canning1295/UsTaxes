@@ -20,12 +20,7 @@ const IV_LENGTH = 12
  * Check if Web Crypto API is available
  */
 export const isCryptoAvailable = (): boolean => {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  return (
-    typeof crypto !== 'undefined' &&
-    crypto.subtle !== undefined &&
-    typeof crypto.getRandomValues === 'function'
-  )
+  return typeof window.crypto.getRandomValues === 'function'
 }
 
 /**

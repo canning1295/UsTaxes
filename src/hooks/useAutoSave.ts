@@ -27,7 +27,7 @@ export function useAutoSave<T extends FieldValues>({
   canSave = () => true
 }: UseAutoSaveOptions<T>): void {
   const autoSaveEnabled = useSelector(
-    (state: YearsTaxesState) => state.appSettings.autoSaveEnabled ?? false
+    (state: YearsTaxesState) => state.appSettings.autoSaveEnabled
   )
 
   // Use ref to track if we've already saved

@@ -17,7 +17,6 @@ import {
   Description as PlainIcon
 } from '@material-ui/icons'
 import Alert from '@material-ui/lab/Alert'
-import { useSelector } from 'react-redux'
 import { store } from 'ustaxes/redux/store'
 import {
   exportPlain,
@@ -26,7 +25,6 @@ import {
   generateExportFilename,
   getSessionPassword
 } from 'ustaxes/crypto'
-import { SecurityState } from 'ustaxes/redux/security'
 
 interface DecryptionConfirmModalProps {
   open: boolean
@@ -34,16 +32,11 @@ interface DecryptionConfirmModalProps {
   onCancel: () => void
 }
 
-type StateWithSecurity = { security: SecurityState }
-const selectPasswordEnabled = (state: StateWithSecurity): boolean =>
-  state.security.settings.passwordEnabled ?? false
-
 export const DecryptionConfirmModal = ({
   open,
   onConfirm,
   onCancel
 }: DecryptionConfirmModalProps): ReactElement => {
-  const isPasswordEnabled = useSelector(selectPasswordEnabled)
   const [plainBackupDownloaded, setPlainBackupDownloaded] = useState(false)
   const [encryptedBackupDownloaded, setEncryptedBackupDownloaded] =
     useState(false)
@@ -106,8 +99,6 @@ export const DecryptionConfirmModal = ({
     setEncryptedBackupDownloaded(false)
     onCancel()
   }
-
-  const hasAnyBackup = plainBackupDownloaded || encryptedBackupDownloaded
 
   return (
     <Dialog

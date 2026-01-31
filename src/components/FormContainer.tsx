@@ -360,7 +360,7 @@ const FormListContainer = <A extends FieldValues>(
   )
 
   const autoSaveEnabled = useSelector(
-    (state: YearsTaxesState) => state.appSettings.autoSaveEnabled ?? false
+    (state: YearsTaxesState) => state.appSettings.autoSaveEnabled
   )
 
   const allowAdd = max === undefined || items.length < max

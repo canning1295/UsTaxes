@@ -90,25 +90,42 @@ describe('fica', () => {
     await testKit.with1040Assert((forms) => {
       const f1040 = commonTests.findF1040OrFail(forms)
       const ssRefund = f1040.schedule3.l11()
-      if (f1040.validW2s().length <= 1) {
+      const w2s = f1040.validW2s()
+
+      if (w2s.length <= 1) {
         // Should never give SS refund with 1 or fewer W2s
         expect(ssRefund).toEqual(0)
       } else {
-        const ssWithheld = f1040
-          .validW2s()
+        // Calculate expected refund using same logic as Schedule3
+        const primaryFica = w2s
+          .filter((w2) => w2.personRole == PersonRole.PRIMARY)
           .map((w2) => w2.ssWithholding)
           .reduce((l, r) => l + r, 0)
-        if (
-          f1040.wages() <= fica.maxIncomeSSTaxApplies ||
-          f1040.validW2s().some((w2) => w2.ssWithholding > fica.maxSSTax) ||
-          ssWithheld < fica.maxSSTax
-        ) {
-          // Should never give SS refund if W2 income below max threshold, some W2 has
-          // withheld over the max, or there is no SS withholding to refund.
-          expect(ssRefund).toEqual(0)
-        } else {
-          // Otherwise, should always give SS refund, and attach schedule 3
-          expect(ssRefund).toBeGreaterThan(0)
+        const spouseFica = w2s
+          .filter((w2) => w2.personRole == PersonRole.SPOUSE)
+          .map((w2) => w2.ssWithholding)
+          .reduce((l, r) => l + r, 0)
+
+        // Check if any individual W2 has withholding > max (disqualifies refund)
+        const primaryHasOverMax = w2s
+          .filter((w2) => w2.personRole == PersonRole.PRIMARY)
+          .some((w2) => w2.ssWithholding > fica.maxSSTax)
+        const spouseHasOverMax = w2s
+          .filter((w2) => w2.personRole == PersonRole.SPOUSE)
+          .some((w2) => w2.ssWithholding > fica.maxSSTax)
+
+        let expectedRefund = 0
+        if (primaryFica > fica.maxSSTax && !primaryHasOverMax) {
+          expectedRefund += primaryFica - fica.maxSSTax
+        }
+        if (spouseFica > fica.maxSSTax && !spouseHasOverMax) {
+          expectedRefund += spouseFica - fica.maxSSTax
+        }
+
+        // Allow for small floating-point differences
+        expect(Math.abs(ssRefund - expectedRefund)).toBeLessThan(0.01)
+
+        if (expectedRefund > 0) {
           expect(hasAttachment(forms, Schedule3)).toEqual(true)
         }
       }

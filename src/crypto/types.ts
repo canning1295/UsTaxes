@@ -109,4 +109,4 @@ export const defaultLockState: LockState = {
 // NOTE: The following were removed as dead code during cleanup:
 // - isEncryptedState: Type guard that was never called
 // - createExportData: Helper function that was never used
-// See .amp/plan/fix-encryption/AUDIT_FINDINGS.md for details
+// See .amp/plans/fix-encryption/AUDIT_FINDINGS.md for details

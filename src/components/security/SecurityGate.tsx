@@ -27,7 +27,6 @@ import {
   recordFailedAttempt,
   resetFailedAttempts,
   setBiometricCredential,
-  enableBiometric,
   enablePasswordProtection,
   SecurityState
 } from 'ustaxes/redux/security'
@@ -37,9 +36,7 @@ import {
   SecuritySettings,
   LockState,
   setSessionPassword,
-  clearSessionPassword,
   encryptAllStorage,
-  decryptAllStorage,
   hasEncryptedData
 } from 'ustaxes/crypto'
 import useStyles from './styles'
@@ -120,8 +117,7 @@ export const SecurityGate = ({
         !securitySettings.biometricEnabled ||
         securitySettings.biometricCredentialId ||
         hasAttemptedBiometricSetup.current ||
-        typeof window === 'undefined' ||
-        !window.PublicKeyCredential
+        !('PublicKeyCredential' in window)
       ) {
         return
       }
@@ -185,12 +181,11 @@ export const SecurityGate = ({
   ])
 
   // Check if biometric authentication is available (must have credential stored)
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const biometricAvailable =
     securitySettings.biometricEnabled &&
-    securitySettings.biometricCredentialId !== null &&
+    !!securitySettings.biometricCredentialId &&
     typeof window !== 'undefined' &&
-    window.PublicKeyCredential !== undefined
+    'PublicKeyCredential' in window
 
   const handleBiometricAuth = async (): Promise<void> => {
     if (!securitySettings.biometricCredentialId) {
