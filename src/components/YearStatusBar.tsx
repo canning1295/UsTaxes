@@ -1,6 +1,6 @@
 import { Button, makeStyles, Typography } from '@material-ui/core'
 import { CalendarToday } from '@material-ui/icons'
-import { ReactElement, useState } from 'react'
+import { ReactElement, useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { YearsTaxesState } from 'ustaxes/redux'
 import { TaxYears } from 'ustaxes/core/data'
@@ -33,6 +33,19 @@ const YearStatusBar = (): ReactElement => {
   const classes = useStyles()
   const year = useSelector((state: YearsTaxesState) => state.activeYear)
   const [isOpen, setOpen] = useState(false)
+  const isMounted = useRef(true)
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false
+    }
+  }, [])
+
+  const handleDone = () => {
+    if (isMounted.current) {
+      setOpen(false)
+    }
+  }
 
   const yearButton = (
     <Button
@@ -60,7 +73,7 @@ const YearStatusBar = (): ReactElement => {
           <Typography variant="body2" color="textSecondary" gutterBottom>
             Select a different tax year to work on:
           </Typography>
-          <YearDropDown onDone={() => setOpen(false)} />
+          <YearDropDown onDone={handleDone} />
         </>
       )}
     </div>

@@ -7,6 +7,20 @@ import { FSPersist, FSRecover } from './Actions'
 type PersistActions = FSPersist | FSRecover
 
 /**
+ * Prepare state for export by removing sensitive security data.
+ * Password hashes and security question answers should NEVER be exported.
+ */
+const sanitizeStateForExport = <S extends USTState>(state: S): S => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { security, ...restState } = state
+
+  // Return state without the security key entirely
+  // Security settings (password, session timeout, biometrics) are device-specific
+  // and should not be transferred between devices or included in backups
+  return restState as S
+}
+
+/**
  * Extends a reducer to persist and load data
  * to/from an external JSON file.
  * This behaves like a Redux "Middleware", which
@@ -36,7 +50,9 @@ export const fsReducer = <S extends USTState, A extends AnyAction>(
         } as S // migrations return any, must coerce.
       }
       case 'fs/persist': {
-        download(filename, stateToString(newState))
+        // Remove security data (password hash, security questions) before export
+        const sanitizedState = sanitizeStateForExport(newState)
+        download(filename, stateToString(sanitizedState))
         return newState
       }
       default: {

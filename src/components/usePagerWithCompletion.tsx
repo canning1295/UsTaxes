@@ -27,6 +27,8 @@ const sectionNames: Record<SectionId, string> = {
   refund: 'Refund Information'
 }
 
+const EMPTY_COMPLETED_SECTIONS: SectionId[] = []
+
 interface UsePagerWithCompletionResult {
   navButtons: ReactElement | undefined
   onAdvance: () => void
@@ -58,9 +60,9 @@ export function usePagerWithCompletion(
   // Get completed sections for the active year (per-year tracking)
   const activeYear = useSelector((state: YearsTaxesState) => state.activeYear)
   const completedSections = useSelector(
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     (state: YearsTaxesState) =>
-      state.appSettings.completedSectionsByYear[activeYear] ?? []
+      state.appSettings.completedSectionsByYear[activeYear] ??
+      EMPTY_COMPLETED_SECTIONS
   )
 
   // Get current section ID from URL (may be undefined if path not in map)

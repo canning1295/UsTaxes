@@ -35,7 +35,12 @@ import {
   verifyPasswordHash,
   hashPassword,
   SecuritySettings,
-  LockState
+  LockState,
+  setSessionPassword,
+  clearSessionPassword,
+  encryptAllStorage,
+  decryptAllStorage,
+  hasEncryptedData
 } from 'ustaxes/crypto'
 import useStyles from './styles'
 
@@ -82,13 +87,17 @@ export const SecurityGate = ({
   // Ref to track if we've already checked for initial lock
   const hasInitialized = useRef(false)
 
-  // Lock the app on startup if password protection is enabled
-  // Use a ref to prevent re-running when isLocked changes
+  // Lock the app on startup if password protection is enabled OR if data is encrypted
+  // The encrypted data check is important because redux state might not be correct
+  // if the data couldn't be decrypted (user hasn't logged in yet)
   useEffect(() => {
     if (hasInitialized.current) return
     hasInitialized.current = true
 
-    if (securitySettings.passwordEnabled) {
+    // Check if localStorage has encrypted data - this is the source of truth
+    const dataIsEncrypted = hasEncryptedData('persist:root')
+
+    if (dataIsEncrypted || securitySettings.passwordEnabled) {
       // Check if this is a fresh page load (not already unlocked)
       const wasUnlocked = sessionStorage.getItem('ustaxes_unlocked')
       if (!wasUnlocked) {
@@ -96,15 +105,6 @@ export const SecurityGate = ({
       }
     }
   }, [securitySettings.passwordEnabled, dispatch])
-
-  // Clear session storage when page is closed
-  useEffect(() => {
-    const handleBeforeUnload = (): void => {
-      sessionStorage.removeItem('ustaxes_unlocked')
-    }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [])
 
   const isLockedOut =
     lockState.lockoutUntil !== null && lockState.lockoutUntil > Date.now()
@@ -268,6 +268,29 @@ export const SecurityGate = ({
       )
 
       if (isValid) {
+        // Check if data is encrypted - if so, we need to reload to rehydrate
+        const dataIsEncrypted = hasEncryptedData('persist:root')
+
+        if (dataIsEncrypted) {
+          // Set session password with persistence for reload
+          await setSessionPassword(password, true)
+          // Mark as unlocked before reload
+          sessionStorage.setItem('ustaxes_unlocked', 'true')
+          // Reload the page to trigger proper rehydration with the session password
+          window.location.reload()
+          return
+        }
+
+        // Set session password for encrypted storage
+        await setSessionPassword(password)
+
+        // If data isn't encrypted yet, encrypt it now
+        try {
+          await encryptAllStorage(['persist:root'], password)
+        } catch (err) {
+          console.error('[SecurityGate] Failed to encrypt existing data:', err)
+        }
+
         dispatch(unlockApp())
         dispatch(resetFailedAttempts())
         sessionStorage.setItem('ustaxes_unlocked', 'true')
@@ -353,6 +376,17 @@ export const SecurityGate = ({
         setLoading(true)
         try {
           const passwordHash = await hashPassword(newPassword)
+
+          // Set session password for encrypted storage
+          await setSessionPassword(newPassword)
+
+          // Encrypt existing data
+          try {
+            await encryptAllStorage(['persist:root'], newPassword)
+          } catch (err) {
+            console.error('[SecurityGate] Failed to encrypt data:', err)
+          }
+
           dispatch(enablePasswordProtection(passwordHash))
           setShowPasswordChange(false)
           setNewPassword('')

@@ -21,7 +21,7 @@ import Urls from 'ustaxes/data/urls'
 import { OverallProgressBar, SectionStatusIcon } from './ProgressIndicator'
 import { urlToSectionId } from 'ustaxes/hooks'
 
-const drawerWidth = 280
+const drawerWidth = 300
 
 const useStyles = makeStyles<Theme, { isMobile: boolean }>((theme) =>
   createStyles({
@@ -46,7 +46,7 @@ const useStyles = makeStyles<Theme, { isMobile: boolean }>((theme) =>
     listSocial: {
       display: 'flex',
       flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexWrap: 'nowrap',
       justifyContent: 'center',
       alignItems: 'center',
       padding: theme.spacing(1),
@@ -54,6 +54,7 @@ const useStyles = makeStyles<Theme, { isMobile: boolean }>((theme) =>
     },
     listItemSocial: {
       flex: '0 0 auto',
+      width: 'auto',
       padding: theme.spacing(0.5)
     },
     list: {

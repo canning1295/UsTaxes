@@ -10,18 +10,23 @@ import { Button } from '@material-ui/core'
 import { Alert } from '@material-ui/lab'
 
 const DataPropagator = (): ReactElement => {
-  const wholeState = useSelector((state: YearsTaxesState) => state)
   const allYears = enumKeys(TaxYears)
-  const yearIndex = _.indexOf(allYears, wholeState.activeYear)
   const dispatch = useDispatch()
 
-  const currentYear: Information = wholeState[wholeState.activeYear]
-  const priorYear: Information = wholeState[allYears[yearIndex - 1]]
+  const activeYear = useSelector((state: YearsTaxesState) => state.activeYear)
+  const yearIndex = _.indexOf(allYears, activeYear)
+  const currentYear: Information = useSelector(
+    (state: YearsTaxesState) => state[activeYear]
+  )
+  const priorYear: Information | undefined = useSelector(
+    (state: YearsTaxesState) =>
+      yearIndex > 0 ? state[allYears[yearIndex - 1]] : undefined
+  )
 
   const canPropagate =
     yearIndex > 0 &&
     currentYear.taxPayer.primaryPerson?.firstName === undefined &&
-    priorYear.taxPayer.primaryPerson?.firstName !== undefined
+    priorYear?.taxPayer.primaryPerson?.firstName !== undefined
 
   const onClick = () => {
     if (canPropagate) {

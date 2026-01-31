@@ -41,7 +41,7 @@ export interface ProgressSummary {
   totalCount: number
   overallPercentage: number
 }
-
+const EMPTY_COMPLETED_SECTIONS: SectionId[] = []
 /**
  * Get the status of primary taxpayer section
  */
@@ -296,9 +296,9 @@ export function useProgress(): ProgressSummary {
   const assets = useSelector((state: YearsTaxesState) => state.assets)
   // Get completed sections for the active year (per-year tracking)
   const completedSections = useSelector(
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     (state: YearsTaxesState) =>
-      state.appSettings.completedSectionsByYear[activeYear] ?? []
+      state.appSettings.completedSectionsByYear[activeYear] ??
+      EMPTY_COMPLETED_SECTIONS
   )
 
   return useMemo(() => {

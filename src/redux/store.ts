@@ -2,9 +2,10 @@ import {
   createStore as reduxCreateStore,
   applyMiddleware,
   Store,
-  CombinedState
+  CombinedState,
+  AnyAction
 } from 'redux'
-import logger from 'redux-logger'
+import { createLogger } from 'redux-logger'
 import rootReducer from './reducer'
 import _ from 'lodash'
 import {
@@ -13,7 +14,7 @@ import {
   PersistedState,
   createMigrate
 } from 'redux-persist'
-import storage from 'redux-persist/lib/storage' // defaults to localStorage for web
+import { encryptedStorage } from 'ustaxes/crypto'
 import { Asset, Information, TaxYear } from 'ustaxes/core/data'
 import { blankYearTaxesState, YearsTaxesState } from '.'
 import { Actions } from './actions'
@@ -26,7 +27,8 @@ import {
   migrateEachYear,
   migrateAgeAndBlindness,
   migrateAddAppSettings,
-  migrateCompletedSectionsToPerYear
+  migrateCompletedSectionsToPerYear,
+  MigrationState
 } from './migration'
 
 type SerializedState = { [K in TaxYear]: Information } & {
@@ -120,18 +122,23 @@ const dateStringTransform = createTransform(
 // the YearsTaxesState<Date> type. But without maintaining
 // type definititions for every possible version, we can't
 // really say anything about the type of the incoming data.
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-const migrations = {
-  0: (state: any) => migrateEachYear(state),
-  1: (state: any) => migrateAgeAndBlindness(state),
-  2: (state: any) => migrateAddAppSettings(state),
-  3: (state: any) => migrateCompletedSectionsToPerYear(state)
-}
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+const migrations: { [key: string]: (state: PersistedState) => PersistedState } =
+  {
+    '0': (state) => migrateEachYear(state as USTState) as PersistedState,
+    '1': (state) => migrateAgeAndBlindness(state as USTState) as PersistedState,
+    '2': (state) =>
+      migrateAddAppSettings(state as MigrationState) as PersistedState,
+    '3': (state) =>
+      migrateCompletedSectionsToPerYear(
+        state as MigrationState
+      ) as PersistedState
+  }
+/* eslint-enable @typescript-eslint/no-unsafe-argument */
 /* eslint-enable @typescript-eslint/no-unsafe-call */
 /* eslint-enable @typescript-eslint/no-unsafe-return */
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 const persistedReducer = fsReducer(
   'ustaxes_save.json',
@@ -144,7 +151,9 @@ const persistedReducer = fsReducer(
       // the persisted version and the version here will be
       // applied in order
       version: 3,
-      storage,
+      // Use encrypted storage - encrypts with AES-GCM-256 when password is enabled
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      storage: encryptedStorage,
       migrate: createMigrate(migrations, { debug: false }),
       transforms: [dateStringTransform]
     },
@@ -165,11 +174,27 @@ export const createWholeStoreUnpersisted = (
 export const createStoreUnpersisted = (information: Information): InfoStore =>
   createWholeStoreUnpersisted({
     ...blankYearTaxesState,
-    Y2020: information
+    Y2020: information,
+    activeYear: 'Y2020'
   })
 
+const ignoredLogActions = new Set<string>([
+  'persist/PERSIST',
+  'persist/REHYDRATE',
+  'persist/FLUSH',
+  'persist/PAUSE',
+  'persist/PURGE',
+  'persist/REGISTER',
+  'fs/recover'
+])
+
+const loggerMiddleware = createLogger({
+  predicate: (_: unknown, action: AnyAction) =>
+    !ignoredLogActions.has(String(action.type))
+})
+
 export const createStore = (): PersistedStore =>
-  reduxCreateStore(persistedReducer, applyMiddleware(logger))
+  reduxCreateStore(persistedReducer, applyMiddleware(loggerMiddleware))
 
 export const store = createStore()
 

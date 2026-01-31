@@ -106,34 +106,7 @@ export const defaultLockState: LockState = {
   lockoutUntil: null
 }
 
-/**
- * Type guard for encrypted state
- */
-export const isEncryptedState = (
-  state: unknown
-): state is EncryptedStateWrapper => {
-  return (
-    typeof state === 'object' &&
-    state !== null &&
-    'encrypted' in state &&
-    (state as EncryptedStateWrapper).encrypted === true &&
-    'encryptedData' in state
-  )
-}
-
-/**
- * Create export data structure
- */
-export const createExportData = (
-  data: unknown,
-  encrypted: boolean,
-  encryption?: ExportedData['encryption']
-): ExportedData => ({
-  version: '1.0',
-  exportDate: new Date().toISOString(),
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  appVersion: process.env.REACT_APP_VERSION ?? '0.1.23',
-  encrypted,
-  data,
-  encryption
-})
+// NOTE: The following were removed as dead code during cleanup:
+// - isEncryptedState: Type guard that was never called
+// - createExportData: Helper function that was never used
+// See .amp/plan/fix-encryption/AUDIT_FINDINGS.md for details
