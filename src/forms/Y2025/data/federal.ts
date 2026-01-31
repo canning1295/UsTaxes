@@ -65,19 +65,19 @@ const federalBrackets: FederalBrackets = {
           },
           {
             name: 'Standard Deduction (Married) with 1 age or blindness allowance',
-            amount: 31550
+            amount: 31600
           },
           {
             name: 'Standard Deduction (Married) with 2 age or blindness allowances',
-            amount: 33100
+            amount: 33200
           },
           {
             name: 'Standard Deduction (Married) with 3 age or blindness allowances',
-            amount: 34650
+            amount: 34800
           },
           {
             name: 'Standard Deduction (Married) with 4 age or blindness allowances',
-            amount: 36200
+            amount: 36400
           }
         ],
         exemptions: [
@@ -96,11 +96,11 @@ const federalBrackets: FederalBrackets = {
           },
           {
             name: 'Standard Deduction (Widowed) with 1 age or blindness allowance',
-            amount: 31550
+            amount: 31600
           },
           {
             name: 'Standard Deduction (Widowed) with 2 age or blindness allowances',
-            amount: 33100
+            amount: 33200
           }
         ],
         exemptions: [
@@ -119,19 +119,19 @@ const federalBrackets: FederalBrackets = {
           },
           {
             name: 'Standard Deduction (Married Filing Separately) with 1 age or blindness allowance',
-            amount: 16550
+            amount: 16600
           },
           {
             name: 'Standard Deduction (Married Filing Separately) with 2 age or blindness allowances',
-            amount: 18100
+            amount: 18200
           },
           {
             name: 'Standard Deduction (Married Filing Separately) with 3 age or blindness allowances',
-            amount: 19650
+            amount: 19800
           },
           {
             name: 'Standard Deduction (Married Filing Separately) with 4 age or blindness allowances',
-            amount: 21200
+            amount: 21400
           }
         ],
         exemptions: [
